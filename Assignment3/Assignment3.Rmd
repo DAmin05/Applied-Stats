@@ -1,0 +1,179 @@
+---
+title: "<center>Assignment3: 2nd Order Pivotal Bootstrap</center>"
+author: "<center>Dev Amin , Manan Patel & Prisha Shah</center>"
+date: "<center>2025-09-26</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r bootstrap}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+
+set.seed(123)
+
+#function to return unbiased sample's sd
+sd_sample <- function(x)
+{
+  n <- length(x)
+  if(n <= 1)
+  {
+    return(0)
+  }
+  sd(x)
+}
+
+
+#bootstrap CI for mean
+bootstrap_ci <- function(x , alpha = 0.05 , nboot = 10000)
+{
+  x <- as.numeric(x)
+  n <- length(x)
+  mean_x <- mean(x)
+  sd_samp <- sd_sample(x)
+  
+  if(n <= 1 || sd_samp == 0)
+  {
+    return(c(mean_x , mean_x))
+  }
+  
+  #creating indices matrix
+  index <- matrix(sample(1:n , size = n*nboot , replace=TRUE) , nrow=n , ncol=nboot)
+  
+  #every column of the matrix is a bootstrap sample
+  x_cols <- matrix(x[index], nrow=n, ncol=nboot)
+  
+  #mean and sd of bootstrap samples
+  mean_boot <- colMeans(x_cols)
+  sd_boot <- apply(x_cols , 2 , sd_sample)
+  
+  #every bootstrap's standard error
+  se_boot <- sd_boot/sqrt(n)
+  se_boot[se_boot == 0] <- Inf
+  
+  #t-test
+  t_test <- (mean_boot - mean_x) / se_boot
+  
+  # quantiles for pivotal interval
+  q_low <- quantile(t_test , probs = alpha/2 , na.rm = TRUE , type = 7)
+  q_high <- quantile(t_test , probs = 1 - alpha/2 , na.rm = TRUE , type = 7)
+  
+  #CI
+  se_x <- sd_samp/sqrt(n)
+  c(mean_x-q_high*se_x , mean_x-q_low*se_x)
+}
+
+
+
+#Normal/Central_Limit_Theorem CI for mean
+normal_ci_mean <- function(x , alpha = 0.05)
+{
+  x <- as.numeric(x)
+  n <- length(x)
+  x_mean <- mean(x)
+  sd_samp <- sd_sample(x)
+  if (n <= 1 || sd_samp == 0)
+  {
+    return(c(x_mean, x_mean))
+  }
+  z <- qnorm(1 - alpha / 2)
+  half <- z * sd_samp / sqrt(n)
+  c(x_mean - half, x_mean + half)
+}
+
+
+coverage_indicators <- function(n , alpha , mu=0 , sigma=1 , nboot=10000)
+{
+  x <- rlnorm(n , meanlog=mu , sdlog=sigma)
+  true_mean <- exp(mu + 0.5 * sigma^2)
+
+  ci_norm <- normal_ci_mean(x , alpha=alpha)
+  ci_boot <- bootstrap_ci(x , alpha=alpha , nboot=nboot)
+
+  cov_norm <- as.numeric(ci_norm[1] <= true_mean && true_mean <= ci_norm[2])
+  cov_boot <- as.numeric(ci_boot[1] <= true_mean && true_mean <= ci_boot[2])
+  c(cov_norm=cov_norm , cov_boot=cov_boot)
+}
+
+
+#running bootstrap
+run_bootstrap <- function(n , alpha , nsim=1000 , nboot=10000 , mu=0 , sigma=1)
+{
+  cov_norm_count <- 0
+  cov_boot_count <- 0
+
+  for (i in 1:nsim) 
+  {
+    res <- coverage_indicators(n=n , alpha=alpha , mu=mu , sigma=sigma , nboot=nboot)
+    cov_norm_count <- cov_norm_count + res["cov_norm"]
+    cov_boot_count <- cov_boot_count + res["cov_boot"]
+  }
+
+  cov_norm <- cov_norm_count / nsim
+  cov_boot <- cov_boot_count / nsim
+
+  se_norm <- sqrt(cov_norm * (1 - cov_norm) / nsim)
+  se_boot <- sqrt(cov_boot * (1 - cov_boot) / nsim)
+
+  data.frame(
+    n = n,
+    alpha = alpha,
+    nominal_coverage = 1 - alpha,
+    coverage_normal = cov_norm,
+    mc_se_normal = se_norm,
+    coverage_boot_t = cov_boot,
+    mc_se_boot_t = se_boot,
+    stringsAsFactors = FALSE
+  )
+}
+
+
+
+nsim  <- 1000
+nboot <- 10000
+mu    <- 0
+sigma <- 1
+
+r1 <- run_bootstrap(n=3 , alpha=0.10 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+r2 <- run_bootstrap(n=10 , alpha=0.10 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+r3 <- run_bootstrap(n=30 , alpha=0.10 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+r4 <- run_bootstrap(n=100 , alpha=0.10 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+
+r5 <- run_bootstrap(n=3 , alpha=0.05 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+r6 <- run_bootstrap(n=10 , alpha=0.05 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+r7 <- run_bootstrap(n=30 , alpha=0.05 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+r8 <- run_bootstrap(n=100 , alpha=0.05 , nsim=nsim , nboot=nboot , mu=mu , sigma=sigma)
+
+result <- rbind(r1 , r2 , r3 , r4 , r5 , r6 , r7 , r8)
+
+
+result$coverage_normal  <- round(result$coverage_normal , 3)
+result$coverage_boot_t  <- round(result$coverage_boot_t , 3)
+result$mc_se_normal     <- round(result$mc_se_normal , 3)
+result$mc_se_boot_t     <- round(result$mc_se_boot_t , 3)
+result$nominal_coverage <- round(result$nominal_coverage , 3)
+
+print(result , row.names = FALSE)
+
+
+
+
+#converting result for plotting
+plot_df <- result %>% pivot_longer(cols = c(coverage_normal , coverage_boot_t) , names_to = "Method" , values_to = "Coverage") %>%
+  mutate(Method = ifelse(Method == "coverage_normal", "Normal Theory", "Bootstrap-t") , alpha = as.factor(alpha))
+
+#plot
+ggplot(plot_df , aes(x = n , y = Coverage , color = Method, shape = alpha , linetype = alpha)) + geom_point(size = 3) + geom_line(linewidth = 1) + geom_hline(aes(yintercept = nominal_coverage), linetype = "dashed", color = "black") + scale_x_continuous(breaks = unique(plot_df$n)) + scale_y_continuous(limits = c(0.6, 1)) + labs(
+    title = "Coverage Comparison for Normal vs Bootstrap-t C.I." , x = "Sample Size (n)" , y = "Coverage Probability" , color = "Method" , shape = "Alpha Level" , linetype = "Alpha Level") + theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(face = "bold", size = 16) , legend.position = "bottom")
+
+```
+
+
+#### The findings illustrate the comparisons of estimating the true mean of a lognormal distribution using two distinct methods of constructing confidence intervals, which are the normal-theory method and the bootstrap-t method. In general, the bootstrap-t method performs better at capturing the target level of confidence relative to when n is small, i.e., n = 3, where the traditional normal-theory method does not succeed. When using n = 3 with a target of 90% confidence level, the normal theory method captures the true mean approximately 64.1% of the time, compared to the bootstrap confidence interval, which captures the true mean approximately 73.2% of the time. When using n = 3 with a target of 95% confidence level, the normal-theory method captured approximately 67.9% of the time, compared to the bootstrap-t, which captured approximately 75.8% of the time. Both methods performed better as n increased, but bootstrap-n continued to perform slightly higher valued captures. For example, when n = 100, with the target of 95% confidence level, the normal captures the true mean approximately 90.2% while the bootstrap captures approximately 93.2%. Overall, these findings highlight that the bootstrap-t method is a better alternative, providing better captures of the true mean, especially when n is small or when model assumptions for normality are violated.

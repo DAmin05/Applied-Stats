@@ -1,0 +1,222 @@
+---
+title: "<center>Assignment4</center>"
+author: "<center>Dev Amin, Manan Patel & Prisha Shah</center>"
+date: "<center>2025-10-08</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r Assingment 4}
+library(ISLR)
+library(dplyr)
+library(ggplot2)
+library(leaps)
+library(lars)
+
+
+set.seed(123)
+
+#building a second order formula, mains + all pairwise interactions + all squares
+second_order_formula <- function(y, xvars)
+{
+  squares <- paste0("I(", xvars, "^2)", collapse = " + ")
+  mains_pairs <- paste0("(", paste(xvars, collapse = " + ") , ")^2")
+  as.formula(paste(y , "~" , mains_pairs , "+" , squares))
+}
+
+#computing press using hat matrix identity
+press_value <- function(fit)
+{
+  e <- residuals(fit)
+  h <- hatvalues(fit)
+  sum((e / (1 - h))^2)
+}
+
+#aligning names and predicting from the leapsselected lm on a test model matrix
+safe_predict_from_leaps <- function(leaps_fit, mm_test)
+{
+  coefs <- coef(leaps_fit)
+  terms <- names(coefs)
+  n <- nrow(mm_test)
+  Xnew <- matrix(0, n, length(coefs))
+  colnames(Xnew) <- terms
+  if ("(Intercept)" %in% terms) Xnew[, "(Intercept)"] <- 1
+  test_names <- make.names(colnames(mm_test))
+  for (nm in terms)
+  {
+    if (nm == "(Intercept)") next
+    pos <- match(make.names(nm), test_names)
+    if (!is.na(pos)) Xnew[, nm] <- mm_test[, pos]
+  }
+  as.numeric(Xnew %*% coefs)
+}
+
+#summarizing prediction performance
+perf_summary <- function(y_true, y_pred)
+{
+  r <- suppressWarnings(cor(y_true , y_pred , use = "complete.obs"))
+  rmse <- sqrt(mean((y_true - y_pred)^2))
+  mae <- mean(abs(y_true - y_pred))
+  sst <- sum((y_true - mean(y_true))^2)
+  sse <- sum((y_true - y_pred)^2)
+  r2 <- 1 - sse / sst
+  data.frame(Correlation = r , RMSE = rmse , MAE = mae , R2 = r2)
+}
+
+
+#preparing origin-specific data, 1=usa, 2=europe, 3=japan
+prepare_origin_df <- function(origin_val)
+{
+  df <- as.data.frame(ISLR::Auto) |> dplyr::filter(origin == origin_val) |> dplyr::select(-origin, -name)
+  y <- "mpg"
+  xvars <- setdiff(names(df) , y)
+  xvars <- xvars[sapply(df[, xvars , drop = FALSE] , is.numeric)]
+  list(df = df , y = y , xvars = xvars)
+}
+
+
+#fitting leaps and lars and returning predictions and metrics
+fit_models <- function(df, y, xvars, train_frac = 0.7, seed = 123)
+{
+  set.seed(seed)
+
+  #preparing data
+  df_use <- df[, c(y , xvars) , drop = FALSE] |> na.omit()
+
+  #splitting into train and test
+  n <- nrow(df_use)
+  train_idx <- sample.int(n , size = floor(train_frac * n))
+  train_df <- df_use[train_idx , , drop = FALSE]
+  test_df  <- df_use[-train_idx , , drop = FALSE]
+
+  #building second order matrices
+  f2 <- second_order_formula(y , xvars)
+  mm_train <- model.matrix(f2 , train_df)
+  mm_test  <- model.matrix(f2 , test_df)
+  y_train  <- model.response(model.frame(f2 , train_df))
+  y_test   <- model.response(model.frame(f2 , test_df))
+
+  #selecting with leaps, first top 5 by cp then picking best by press
+  regfit <- regsubsets(mm_train[, -1 , drop = FALSE] , y_train , nbest = 1 , nvmax = ncol(mm_train) - 1 , method = "exhaustive")
+  regsum <- summary(regfit)
+  top5 <- order(regsum$cp)[1:min(5 , length(regsum$cp))]
+
+  best_press <- Inf
+  best_fit <- NULL
+  train_cols <- colnames(mm_train)[-1]
+
+  for (i in top5)
+  {
+    keep <- regsum$which[i , -1]
+    chosen <- train_cols[keep]
+    fit <- lm(y_train ~ . , data = as.data.frame(mm_train[ , chosen , drop = FALSE]))
+    pr <- press_value(fit)
+    if (pr < best_press)
+    {
+      best_press <- pr
+      best_fit <- fit
+    }
+  }
+
+  #predicting with leaps on test
+  pred_leaps <- safe_predict_from_leaps(best_fit , mm_test)
+
+  #fitting lars and choosing step by min cp
+  x_train <- mm_train[ , -1 , drop = FALSE]
+  x_test  <- mm_test[ , -1 , drop = FALSE]
+  lars_fit <- lars(x_train , y_train , type = "lar" , normalize = TRUE , intercept = TRUE)
+  best_step <- which.min(lars_fit$Cp)
+  pred_lars <- as.numeric(predict(lars_fit , x_test , s = best_step , type = "fit" , mode = "step")$fit)
+
+  #metric
+  perf <- dplyr::bind_rows(dplyr::mutate(perf_summary(y_test , pred_leaps) , Method = "LEAPS") , dplyr::mutate(perf_summary(y_test , pred_lars) ,  Method = "LARS")) |> dplyr::relocate(Method)
+
+  list(y_test = y_test , pred_leaps = pred_leaps , pred_lars  = pred_lars , perf = perf , leaps_terms = names(coef(best_fit)) , lars_nonzero = coef(lars_fit , s = best_step , mode = "step")[abs(coef(lars_fit , s = best_step , mode = "step")) > 0]
+  )
+}
+
+
+#countries analysis
+
+#USA
+
+usa_prep <- prepare_origin_df(1)
+usa_res  <- fit_models(usa_prep$df , usa_prep$y , usa_prep$xvars)
+
+ggplot(data.frame(Actual = usa_res$y_test , Predicted = usa_res$pred_leaps) , aes(Actual, Predicted)) + geom_point(color = "#1f78b4" , size = 3 , alpha = 0.85) + geom_abline(slope = 1 , intercept = 0 , color = "#222222" , linetype = "dashed") + labs(title = paste("USA: LEAPS predictions (corr =" , round(cor(usa_res$y_test , usa_res$pred_leaps) , 3) , ")") , x = "actual mpg" , y = "predicted mpg") + theme_minimal()
+
+ggplot(data.frame(Actual = usa_res$y_test , Predicted = usa_res$pred_lars) , aes(Actual , Predicted)) + geom_point(color = "#e31a1c" , size = 3,  alpha = 0.85) + geom_abline(slope = 1 , intercept = 0 , color = "#222222" , linetype = "dashed") + labs(title = paste("USA: LARS predictions (corr =" , round(cor(usa_res$y_test , usa_res$pred_lars) , 3), ")") , x = "actual mpg" , y = "predicted mpg") + theme_minimal()
+
+ggplot(data.frame(Pred = usa_res$pred_leaps , Resid = usa_res$y_test - usa_res$pred_leaps) , aes(Pred, Resid)) + geom_point(color = "#33a02c" , size = 3 , alpha = 0.85) + geom_hline(yintercept = 0 , linetype = "dashed" , color = "#222222") + labs(title = "USA: LEAPS residuals" , x = "predicted mpg" , y = "residuals") + theme_minimal()
+
+ggplot(data.frame(Pred = usa_res$pred_lars , Resid = usa_res$y_test - usa_res$pred_lars) , aes(Pred, Resid)) + geom_point(color = "#ff7f00" , size = 3 , alpha = 0.85) + geom_hline(yintercept = 0 , linetype = "dashed" , color = "#222222") + labs(title = "USA: LARS residuals" , x = "predicted mpg" , y = "residuals") + theme_minimal()
+
+
+
+cat("USA performance:")
+print(usa_res$perf)
+
+cat("USA: leaps terms:")
+print(usa_res$leaps_terms)
+
+cat("USA: lars non-zero coefficients:")
+print(round(usa_res$lars_nonzero , 5))
+
+
+
+
+#Europe
+
+eu_prep <- prepare_origin_df(2)
+eu_res  <- fit_models(eu_prep$df , eu_prep$y , eu_prep$xvars)
+
+ggplot(data.frame(Actual = eu_res$y_test, Predicted = eu_res$pred_leaps), aes(Actual , Predicted)) + geom_point(color = "#1f78b4" , size = 3 , alpha = 0.85) + geom_abline(slope = 1 , intercept = 0 , color = "#222222" , linetype = "dashed") + labs(title = paste("Europe: LEAPS predictions (corr =" , round(cor(eu_res$y_test , eu_res$pred_leaps) , 3) , ")") , x = "actual mpg" , y = "predicted mpg") + theme_minimal()
+
+ggplot(data.frame(Actual = eu_res$y_test , Predicted = eu_res$pred_lars) , aes(Actual , Predicted)) + geom_point(color = "#e31a1c" , size = 3 , alpha = 0.85) + geom_abline(slope = 1 , intercept = 0 , color = "#222222" , linetype = "dashed") + labs(title = paste("Europe: LARS predictions (corr =" , round(cor(eu_res$y_test , eu_res$pred_lars) , 3), ")") , x = "actual mpg" , y = "predicted mpg") + theme_minimal()
+
+ggplot(data.frame(Pred = eu_res$pred_leaps , Resid = eu_res$y_test - eu_res$pred_leaps) , aes(Pred , Resid)) + geom_point(color = "#33a02c" , size = 3 , alpha = 0.85) + geom_hline(yintercept = 0 , linetype = "dashed" , color = "#222222") + labs(title = "Europe: LEAPS residuals" , x = "predicted mpg" , y = "residuals") + theme_minimal()
+
+ggplot(data.frame(Pred = eu_res$pred_lars , Resid = eu_res$y_test - eu_res$pred_lars) , aes(Pred, Resid)) + geom_point(color = "#ff7f00" , size = 3 , alpha = 0.85) + geom_hline(yintercept = 0 , linetype = "dashed" , color = "#222222") + labs(title = "Europe: LARS residuals" , x = "predicted mpg", y = "residuals") + theme_minimal()
+
+
+cat("Europe performance:")
+print(eu_res$perf)
+
+cat("Europe: leaps terms:")
+print(eu_res$leaps_terms)
+
+cat("Europe:lars non-zero coefficients:")
+print(round(eu_res$lars_nonzero , 5))
+
+
+
+#Japan
+
+jp_prep <- prepare_origin_df(3)
+jp_res  <- fit_models(jp_prep$df , jp_prep$y , jp_prep$xvars)
+
+ggplot(data.frame(Actual = jp_res$y_test , Predicted = jp_res$pred_leaps) ,aes(Actual, Predicted)) + geom_point(color = "#1f78b4" , size = 3 , alpha = 0.85) + geom_abline(slope = 1 , intercept = 0 , color = "#222222" , linetype = "dashed") + labs(title = paste("Japan: LEAPS predictions (corr =" , round(cor(jp_res$y_test , jp_res$pred_leaps) , 3) , ")") , x = "actual mpg" , y = "predicted mpg") + theme_minimal()
+
+ggplot(data.frame(Actual = jp_res$y_test , Predicted = jp_res$pred_lars) , aes(Actual, Predicted)) + geom_point(color = "#e31a1c" , size = 3 , alpha = 0.85) + geom_abline(slope = 1 , intercept = 0 , color = "#222222" , linetype = "dashed") + labs(title = paste("Japan: LARS predictions (corr =" , round(cor(jp_res$y_test , jp_res$pred_lars) , 3), ")") , x = "actual mpg" , y = "predicted mpg") + theme_minimal()
+
+ggplot(data.frame(Pred = jp_res$pred_leaps , Resid = jp_res$y_test - jp_res$pred_leaps) , aes(Pred , Resid)) + geom_point(color = "#33a02c" , size = 3 , alpha = 0.85) + geom_hline(yintercept = 0 , linetype = "dashed" , color = "#222222") + labs(title = "Japan: LEAPS residuals" , x = "predicted mpg" , y = "residuals") + theme_minimal()
+
+ggplot(data.frame(Pred = jp_res$pred_lars , Resid = jp_res$y_test - jp_res$pred_lars) , aes(Pred, Resid)) + geom_point(color = "#ff7f00" , size = 3 , alpha = 0.85) + geom_hline(yintercept = 0 , linetype = "dashed" , color = "#222222") + labs(title = "Japan: LARS residuals" , x = "predicted mpg" , y = "residuals") + theme_minimal()
+
+
+cat("Japan performance:")
+print(jp_res$perf)
+
+cat("Japan — leaps terms:")
+print(jp_res$leaps_terms)
+
+cat("Japan — lars non-zero coefficients:")
+print(round(jp_res$lars_nonzero , 5))
+
+```
+
+

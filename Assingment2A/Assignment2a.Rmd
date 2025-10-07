@@ -1,0 +1,893 @@
+---
+title: "Assignment2a"
+author: "Dev Amin"
+date: "2025-09-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+code3rdday.pck <-
+c("code3rdday.pck", "codeday1.pck", "my.dat.plot0", "gui.datplot", 
+"NOAA", "codeday3.pck", "my.dat.plot3", "my.dat.plot4", "codeday4.pck", 
+"my.bootstrap1", "gui.bootstrap1", "my.bootstrap2", "gui.bootstrap2", 
+"my.bootstrap3", "gui.bootstrapxy", "my.dat.plot5", "my.dat.plot5a"
+)
+
+codeday1.pck <-
+c("codeday1.pck", "my.dat.plot0", "gui.datplot", "NOAA")
+
+
+
+### my.dat.plot0 function plots a scatterplot for columns i and j of teh dataset and overlays a smooth curve in the color passed as the parameter. Also the plot uses the x and labels and title that are passed as a parameters
+my.dat.plot0 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol){
+#plot(NOAA[,3],NOAA[,2])
+#lines(smooth(NOAA[,3],NOAA[,2]))#MISTAKE
+#traceback()
+#lines(smooth.spline(NOAA[,3],NOAA[,2]))
+plot(mat[,i],mat[,j],xlab=zxlab,ylab=zylab,main=zmain)
+lines(smooth.spline(mat[,i],mat[,j]),col=zcol)
+}
+
+
+
+gui.datplot <-
+function(){
+library(tcltk)
+inputs <- function(){
+
+   x <- tclVar("NOAA")
+   y <- tclVar("1")
+   z <- tclVar("2")
+   w<-tclVar("\"delta temp\"") 
+wa<-tclVar("\"disasters\"")
+wb<-tclVar("\"Disasters vs warming\"")
+zc<-tclVar("2")
+
+   tt <- tktoplevel()
+   tkwm.title(tt,"Choose parameters for new function                   ")
+   x.entry <- tkentry(tt, textvariable=x)
+   y.entry <- tkentry(tt, textvariable=y)
+   z.entry <- tkentry(tt, textvariable=z)
+   w.entry<-tkentry(tt, textvariable=w)  
+wa.entry<-tkentry(tt,textvariable=wa)
+wb.entry<-tkentry(tt,textvariable=wb)
+zc.entry<-tkentry(tt,textvariable=zc)
+   reset <- function()
+    {
+     tclvalue(x)<-""
+     tclvalue(y)<-""
+     tclvalue(z)<-""
+	tclvalue(w)<-""
+tclvalue(wa.entry)<-""
+tclvalue(wb.entry)<-""
+tclvalue(zc.entry)<-""
+       }
+
+   reset.but <- tkbutton(tt, text="Reset", command=reset)
+
+   submit <- function() {
+     x <- tclvalue(x)
+     y <- tclvalue(y)
+     z <- tclvalue(z)
+       w<-tclvalue(w)
+	wa<-tclvalue(wa)
+	wb<-tclvalue(wb)
+	zc<-tclvalue(zc)  
+     e <- parent.env(environment())
+     e$x <- x
+     e$y <- y
+     e$z <- z
+e$w<-w
+e$wa<-wa
+e$wb<-wb
+e$zc<-zc
+        tkdestroy(tt)
+   }
+
+   submit.but <- tkbutton(tt, text="start", command=submit)
+   tkgrid(tklabel(tt,text="Input data matrix"),columnspan=2)
+   tkgrid(tklabel(tt,text="data"), x.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input X column"),columnspan=2)
+   tkgrid(tklabel(tt,text="i"), y.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input Y column"),columnspan=2)
+   tkgrid(tklabel(tt,text="j"), z.entry, pady=10, padx =30)
+
+  tkgrid(tklabel(tt,text="Input xaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Xaxis"), w.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input yaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Yaxis"), wa.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input plot title"),columnspan=2)
+   tkgrid(tklabel(tt,text="Plot title"), wb.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input color code"),columnspan=2)
+   tkgrid(tklabel(tt,text="Color code"),zc.entry, pady=10, padx =30)
+   
+   tkgrid(submit.but, reset.but)
+
+  tkwait.window(tt)
+  return(c(x,y,z,w,wa,wb,zc))
+}
+#Now run the function like:
+predictor_para <- inputs()
+print(predictor_para)
+mat<-eval(parse(text=predictor_para[1]))
+ind1<-eval(parse(text=predictor_para[2]))
+ind2<-eval(parse(text=predictor_para[3]))
+xlab<-eval(parse(text=predictor_para[4]))
+ylab<-eval(parse(text=predictor_para[5]))
+maintitle<-eval(parse(text=predictor_para[6]))
+zcol<-eval(parse(text=predictor_para[7]))
+my.dat.plot0(mat,ind1,ind2,xlab,ylab, maintitle,zcol)
+
+}
+NOAA <-
+structure(list(year = 1980:2016, X.disaster = c(3L, 1L, 3L, 5L, 
+2L, 5L, 2L, 0L, 1L, 5L, 3L, 4L, 6L, 4L, 6L, 4L, 4L, 3L, 9L, 5L, 
+2L, 2L, 4L, 7L, 5L, 5L, 6L, 5L, 11L, 7L, 5L, 16L, 11L, 9L, 8L, 
+10L, 15L), delta.temp = c(0.27000000000000002, 0.33000000000000002, 
+0.13, 0.29999999999999999, 0.16, 0.12, 0.19, 0.33000000000000002, 
+0.40999999999999998, 0.28999999999999998, 0.44, 0.42999999999999999, 
+0.23000000000000001, 0.23999999999999999, 0.32000000000000001, 
+0.45000000000000001, 0.34999999999999998, 0.47999999999999998, 
+0.63, 0.41999999999999998, 0.41999999999999998, 0.54000000000000004, 
+0.63, 0.62, 0.55000000000000004, 0.68999999999999995, 0.64000000000000001, 
+0.66000000000000003, 0.54000000000000004, 0.65000000000000002, 
+0.71999999999999997, 0.60999999999999999, 0.64000000000000001, 
+0.66000000000000003, 0.75, 0.87, 0.98999999999999999)), class = "data.frame", row.names = c(NA, 
+-37L))
+codeday3.pck <-
+c("codeday3.pck", "my.dat.plot3", "my.dat.plot4")
+
+
+### my.dat.plot3 function plots two columns from a dataset and draws a smooth curve through the points. The if-else statement is there to choose between using default values or use the square root value with do.sqrt. It also calculates the residuals from the curve and returns them with the spline
+my.dat.plot3 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F){
+#plot(NOAA[,3],NOAA[,2])
+#lines(smooth(NOAA[,3],NOAA[,2]))#MISTAKE
+#traceback()
+#lines(smooth.spline(NOAA[,3],NOAA[,2]))
+if(!do.sqrt){
+plot(mat[,i],mat[,j],xlab=zxlab,ylab=zylab,main=zmain)
+#lines(smooth.spline(mat[,i],mat[,j]),col=zcol)
+smstr<-smooth.spline(mat[,i],mat[,j])
+lines(smstr,col=zcol)
+}else{
+plot(mat[,i],sqrt(mat[,j]),xlab=zxlab,ylab=zylab,main=zmain)
+#lines(smooth.spline(mat[,i],sqrt(mat[,j])),col=zcol)
+smstr<-smooth.spline(mat[,i],sqrt(mat[,j]))
+lines(smstr,col=zcol)
+}
+resid<-mat[,j]-predict(smstr,mat[,i])$y
+smstr$resid<-resid
+smstr
+}
+
+
+
+### my.dat.plot4 creates a scatterplot for 2 columns and fits 2 curves, a smooth spline and a simple linear spline, on the plot. It then calculates residuals for both models, computes their sums of square and performs F-test to see how different both models are.
+my.dat.plot4 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F){
+#plot(NOAA[,3],NOAA[,2])
+#lines(smooth(NOAA[,3],NOAA[,2]))#MISTAKE
+#traceback()
+#lines(smooth.spline(NOAA[,3],NOAA[,2]))
+if(!do.sqrt){
+plot(mat[,i],mat[,j],xlab=zxlab,ylab=zylab,main=zmain)
+#lines(smooth.spline(mat[,i],mat[,j]),col=zcol)
+smstr<-smooth.spline(mat[,i],mat[,j])
+smstr.lin<-smooth.spline(mat[,i],mat[,j],df=2)
+lines(smstr,col=zcol)
+lines(smstr.lin,col=(zcol+1))
+}else{
+plot(mat[,i],sqrt(mat[,j]),xlab=zxlab,ylab=zylab,main=zmain)
+#lines(smooth.spline(mat[,i],sqrt(mat[,j])),col=zcol)
+smstr<-smooth.spline(mat[,i],sqrt(mat[,j]))
+smstr.lin<-smooth.spline(mat[,i],sqrt(mat[,j]),df=2)
+lines(smstr,col=zcol)
+lines(smstr.lin,col=(zcol+1))
+}
+resid1<-mat[,j]-predict(smstr,mat[,i])$y
+resid2<-mat[,j]-predict(smstr.lin,mat[,i])$y
+dfmod<-smstr$df
+dflin<-2
+ssmod<-sum(resid1^2)
+sslin<-sum(resid2^2)
+numss<-sslin-ssmod
+n1<-length(mat[,j])
+Fstat<-(numss/(dfmod-dflin))/(ssmod/(n1-dfmod))
+pvalue<-pf(Fstat,dfmod-dflin,n1-dfmod)
+stat.out<-list(SSM=ssmod,SSLIN=sslin,dfmod=dfmod,dflin=dflin,F=Fstat,P=pvalue,n=n1)
+smstr$statcalc<-stat.out
+smstr
+}
+
+
+
+
+codeday4.pck <-
+c("codeday4.pck", "my.bootstrap1", "gui.bootstrap1", "my.bootstrap2", 
+"gui.bootstrap2", "my.bootstrap3", "gui.bootstrapxy", "my.dat.plot5", 
+"my.dat.plot5a")
+
+
+### my.bootstrap1 performs a bootstrap test to check how strong F-statistic is. In the For-Loop, it keeps resampling the residuals, refilts the models many times and store the new F vallues. Finally, it shows the distribution of the F-values using a boxplot and returns stat.out.0
+my.bootstrap1 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,nboot=10000){
+#function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,do.plot=T,in.boot=T)
+#stat.out<-list(smstrmod=smstr,smstrlin=smstr.lin,resid.mod=resid1,resid.lin=resid2,dfmod=dfmod,dflin=dflin,F=Fstat,P=pvalue,n=n1)
+par(mfrow=c(1,2))
+stat.out0<-my.dat.plot5(mat,i,j,zxlab,zylab,zmain,zcol,do.sqrt,do.plot=T,in.boot=F)
+F0<-stat.out0$F
+resid0<-stat.out0$resid.lin
+bootvec<-NULL
+y0<-predict(stat.out0$smstrlin,mat[,i])$y
+matb<-mat
+for(i1 in 1:nboot){
+	if(floor(i1/500)==(i1/500)){print(i1)}
+	residb<-sample(resid0,replace=T)
+	Yb<-y0+residb
+	matb[,j]<-Yb
+	stat.outb<-my.dat.plot5(matb,i,j,zxlab,zylab,zmain,zcol,do.sqrt,do.plot=F,in.boot=T)
+	bootvec<-c(bootvec,stat.outb$F)
+}
+pvalboot<-sum(bootvec>F0)/nboot
+boxplot(bootvec)
+stat.out0$pvalboot<-pvalboot
+stat.out0	
+}
+
+
+
+
+gui.bootstrap1 <-
+function(){
+library(tcltk)
+inputs <- function(){
+
+   x <- tclVar("NOAA")
+   y <- tclVar("1")
+   z <- tclVar("2")
+   w<-tclVar("\"delta temp\"") 
+wa<-tclVar("\"disasters\"")
+wb<-tclVar("\"Disasters vs warming\"")
+zc<-tclVar("2")
+qc<-tclVar("F")
+rc<-tclVar("10000")
+
+   tt <- tktoplevel()
+   tkwm.title(tt,"Choose parameters for new function                   ")
+   x.entry <- tkentry(tt, textvariable=x)
+   y.entry <- tkentry(tt, textvariable=y)
+   z.entry <- tkentry(tt, textvariable=z)
+   w.entry<-tkentry(tt, textvariable=w)  
+wa.entry<-tkentry(tt,textvariable=wa)
+wb.entry<-tkentry(tt,textvariable=wb)
+zc.entry<-tkentry(tt,textvariable=zc)
+qc.entry<-tkentry(tt,textvariable=qc)
+rc.entry<-tkentry(tt,textvariable=rc)
+   reset <- function()
+    {
+     tclvalue(x)<-""
+     tclvalue(y)<-""
+     tclvalue(z)<-""
+	tclvalue(w)<-""
+tclvalue(wa.entry)<-""
+tclvalue(wb.entry)<-""
+tclvalue(zc.entry)<-""
+tclvalue(qc.entry)<-""
+tclvalue(rc.entry)<-""
+       }
+
+   reset.but <- tkbutton(tt, text="Reset", command=reset)
+
+   submit <- function() {
+     x <- tclvalue(x)
+     y <- tclvalue(y)
+     z <- tclvalue(z)
+       w<-tclvalue(w)
+	wa<-tclvalue(wa)
+	wb<-tclvalue(wb)
+	zc<-tclvalue(zc)  
+	qc<-tclvalue(qc)
+	rc<-tclvalue(rc)
+     e <- parent.env(environment())
+     e$x <- x
+     e$y <- y
+     e$z <- z
+e$w<-w
+e$wa<-wa
+e$wb<-wb
+e$zc<-zc
+e$qc<-qc
+e$rc<-rc
+        tkdestroy(tt)
+   }
+
+   submit.but <- tkbutton(tt, text="start", command=submit)
+   tkgrid(tklabel(tt,text="Input data matrix"),columnspan=2)
+   tkgrid(tklabel(tt,text="data"), x.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input X column"),columnspan=2)
+   tkgrid(tklabel(tt,text="i"), y.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input Y column"),columnspan=2)
+   tkgrid(tklabel(tt,text="j"), z.entry, pady=10, padx =30)
+
+  tkgrid(tklabel(tt,text="Input xaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Xaxis"), w.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input yaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Yaxis"), wa.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input plot title"),columnspan=2)
+   tkgrid(tklabel(tt,text="Plot title"), wb.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input color code"),columnspan=2)
+   tkgrid(tklabel(tt,text="Color code"),zc.entry, pady=10, padx =30)
+
+tkgrid(tklabel(tt,text="Input sqrt indicator"),columnspan=2)
+   tkgrid(tklabel(tt,text="Sqrt=T"),qc.entry, pady=10, padx =30)
+   
+tkgrid(tklabel(tt,text="Input nboot"),columnspan=2)
+   tkgrid(tklabel(tt,text="nboot"),rc.entry, pady=10, padx =30)
+
+   tkgrid(submit.but, reset.but)
+
+  tkwait.window(tt)
+  return(c(x,y,z,w,wa,wb,zc,qc,rc))
+}
+#Now run the function like:
+predictor_para <- inputs()
+print(predictor_para)
+mat<-eval(parse(text=predictor_para[1]))
+ind1<-eval(parse(text=predictor_para[2]))
+ind2<-eval(parse(text=predictor_para[3]))
+xlab<-eval(parse(text=predictor_para[4]))
+ylab<-eval(parse(text=predictor_para[5]))
+maintitle<-eval(parse(text=predictor_para[6]))
+zcol<-eval(parse(text=predictor_para[7]))
+zsqrt<-eval(parse(text=predictor_para[8]))
+znboot<-eval(parse(text=predictor_para[9]))
+my.bootstrap1(mat,ind1,ind2,xlab,ylab, maintitle,zcol,zsqrt,znboot)
+
+}
+
+
+
+
+### my.bootstrap2 creates confidence bands or prediction bands around the spline fit using bootstrapping. First by fitting the spline and getting residuals, then using the for loop resamples those residuals, adds them back to the fitted values, and refits the spline many times. All of these bootstrap fits are stored, and for each x-value the function calculates the lower and upper quantiles for the bootstrap results. If the pivotal option is used, the results are re-centered to make the bands more accurate. At last it plots two lines on top of the data showing the lower and upper limits of these bands
+my.bootstrap2 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,nboot=10000,pred.bound=T,conf.lev=.95,pivotal=T){
+#function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,do.plot=T,in.boot=T)
+#stat.out<-list(smstrmod=smstr,smstrlin=smstr.lin,resid.mod=resid1,resid.lin=resid2,dfmod=dfmod,dflin=dflin,F=Fstat,P=pvalue,n=n1)
+par(mfrow=c(1,1))
+stat.out0<-my.dat.plot5(mat,i,j,zxlab,zylab,zmain,zcol,do.sqrt,do.plot=T,in.boot=F)
+resid0<-stat.out0$resid.mod
+bootmat<-NULL
+y0<-predict(stat.out0$smstrmod,mat[,i])$y
+matb<-mat
+for(i1 in 1:nboot){
+	if(floor(i1/500)==(i1/500)){print(i1)}
+	residb<-sample(resid0,replace=T)
+	Yb<-y0+residb
+	matb[,j]<-Yb
+#print(matb)
+	stat.outb<-my.dat.plot5(matb,i,j,zxlab,zylab,zmain,zcol,do.sqrt,do.plot=F,in.boot=T)
+	Ybp<-predict(stat.outb$smstrmod,matb[,i])$y
+	if(pred.bound){
+		if(pivotal){
+			bootmat<-rbind(bootmat,stat.outb$resid.mod+Ybp-y0)
+		}else{
+			bootmat<-rbind(bootmat,stat.outb$resid.mod+Ybp)
+		}
+	}else{
+		if(pivotal){
+			bootmat<-rbind(bootmat,Ybp-y0)
+		}else{
+			bootmat<-rbind(bootmat,Ybp)
+		}
+	}
+
+}
+alpha<-(1-conf.lev)/2
+my.quant<-function(x,a=alpha){quantile(x,c(a,1-a))}
+bounds<-apply(bootmat,2,my.quant)
+if(pivotal){
+	bounds[1,]<-y0-bounds[1,]
+	bounds[2,]<-y0-bounds[2,]
+}
+x<-mat[,i]
+if(do.sqrt){
+	x<-sqrt(x)
+}
+o1<-order(x)
+lines(x[o1],bounds[1,o1],col=zcol+2)
+lines(x[o1],bounds[2,o1],col=zcol+2)
+}
+
+
+
+
+
+
+
+
+
+gui.bootstrap2 <-
+function(){
+library(tcltk)
+#,pred.bound=T,conf.lev=.95,pivotal=T
+inputs <- function(){
+
+   x <- tclVar("NOAA")
+   y <- tclVar("1")
+   z <- tclVar("2")
+   w<-tclVar("\"delta temp\"") 
+wa<-tclVar("\"disasters\"")
+wb<-tclVar("\"Disasters vs warming\"")
+zc<-tclVar("2")
+qc<-tclVar("F")
+rc<-tclVar("10000")
+za<-tclVar("T")
+zb<-tclVar(".95")
+wc<-tclVar("T")
+
+   tt <- tktoplevel()
+   tkwm.title(tt,"Choose parameters for new function                   ")
+   x.entry <- tkentry(tt, textvariable=x)
+   y.entry <- tkentry(tt, textvariable=y)
+   z.entry <- tkentry(tt, textvariable=z)
+   w.entry<-tkentry(tt, textvariable=w)  
+wa.entry<-tkentry(tt,textvariable=wa)
+wb.entry<-tkentry(tt,textvariable=wb)
+zc.entry<-tkentry(tt,textvariable=zc)
+qc.entry<-tkentry(tt,textvariable=qc)
+rc.entry<-tkentry(tt,textvariable=rc)
+za.entry<-tkentry(tt,textvariable=za)
+zb.entry<-tkentry(tt,textvariable=zb)
+wc.entry<-tkentry(tt,textvariable=wc)
+
+   reset <- function()
+    {
+     tclvalue(x)<-""
+     tclvalue(y)<-""
+     tclvalue(z)<-""
+	tclvalue(w)<-""
+tclvalue(wa.entry)<-""
+tclvalue(wb.entry)<-""
+tclvalue(zc.entry)<-""
+tclvalue(qc.entry)<-""
+tclvalue(rc.entry)<-""
+tclvalue(za.entry)<-""
+tclvalue(zb.entry)<-""
+tclvalue(wc.entry)<-""
+
+       }
+
+   reset.but <- tkbutton(tt, text="Reset", command=reset)
+
+   submit <- function() {
+     x <- tclvalue(x)
+     y <- tclvalue(y)
+     z <- tclvalue(z)
+       w<-tclvalue(w)
+	wa<-tclvalue(wa)
+	wb<-tclvalue(wb)
+	zc<-tclvalue(zc)  
+	qc<-tclvalue(qc)
+	rc<-tclvalue(rc)
+	za<-tclvalue(za)
+zb<-tclvalue(zb)
+wc<-tclvalue(wc)
+
+     e <- parent.env(environment())
+     e$x <- x
+     e$y <- y
+     e$z <- z
+e$w<-w
+e$wa<-wa
+e$wb<-wb
+e$zc<-zc
+e$qc<-qc
+e$rc<-rc
+e$za<-za
+e$zb<-zb
+e$wc<-wc
+
+        tkdestroy(tt)
+   }
+
+   submit.but <- tkbutton(tt, text="start", command=submit)
+   tkgrid(tklabel(tt,text="Input data matrix"),columnspan=2)
+   tkgrid(tklabel(tt,text="data"), x.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input X column"),columnspan=2)
+   tkgrid(tklabel(tt,text="i"), y.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input Y column"),columnspan=2)
+   tkgrid(tklabel(tt,text="j"), z.entry, pady=10, padx =30)
+
+  tkgrid(tklabel(tt,text="Input xaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Xaxis"), w.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input yaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Yaxis"), wa.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input plot title"),columnspan=2)
+   tkgrid(tklabel(tt,text="Plot title"), wb.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input color code"),columnspan=2)
+   tkgrid(tklabel(tt,text="Color code"),zc.entry, pady=10, padx =30)
+
+tkgrid(tklabel(tt,text="Input sqrt indicator"),columnspan=2)
+   tkgrid(tklabel(tt,text="Sqrt=T"),qc.entry, pady=10, padx =30)
+   
+tkgrid(tklabel(tt,text="Input nboot"),columnspan=2)
+   tkgrid(tklabel(tt,text="nboot"),rc.entry, pady=10, padx =30)
+
+tkgrid(tklabel(tt,text="Prediction Bound?"),columnspan=2)
+   tkgrid(tklabel(tt,text="Pbound=T"),za.entry, pady=10, padx =30)
+tkgrid(tklabel(tt,text="Conf.level"),columnspan=2)
+   tkgrid(tklabel(tt,text="Confidence"),zb.entry, pady=10, padx =30)
+tkgrid(tklabel(tt,text="Pivotal=T"),columnspan=2)
+   tkgrid(tklabel(tt,text="Pivotal"),wc.entry, pady=10, padx =30)
+
+
+   tkgrid(submit.but, reset.but)
+
+  tkwait.window(tt)
+  return(c(x,y,z,w,wa,wb,zc,qc,rc,za,zb,wc))
+}
+#Now run the function like:
+predictor_para <- inputs()
+print(predictor_para)
+mat<-eval(parse(text=predictor_para[1]))
+ind1<-eval(parse(text=predictor_para[2]))
+ind2<-eval(parse(text=predictor_para[3]))
+xlab<-eval(parse(text=predictor_para[4]))
+ylab<-eval(parse(text=predictor_para[5]))
+maintitle<-eval(parse(text=predictor_para[6]))
+zcol<-eval(parse(text=predictor_para[7]))
+zsqrt<-eval(parse(text=predictor_para[8]))
+znboot<-eval(parse(text=predictor_para[9]))
+zpred<-eval(parse(text=predictor_para[10]))
+zconf<-eval(parse(text=predictor_para[11]))
+zpivot<-eval(parse(text=predictor_para[12]))
+
+my.bootstrap2(mat,ind1,ind2,xlab,ylab, maintitle,zcol,zsqrt,znboot,zpred,zconf,zpivot)
+
+}
+
+
+
+
+
+
+
+###my.bootstrap3 makes bands around the spline fit by resampling whole rows, x and y together, of the dataset, instead of just using residuals. Inside th efor-loop, it repeatedky creates new bootstrap datasets, fits a spline for each one, predicts the curve at the original x values and stores results in bootmat. After the loop, it takes the lower and upper quantiles of the curves at each x-position to form the bands. If pred.bound is true, the bands include both curve and predition bands, else it will only show curve. the pivotal recenters the results and finally the upper and lower band lines are ploted.
+my.bootstrap3 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,nboot=10000,pred.bound=T,conf.lev=.95,pivotal=T){
+par(mfrow=c(1,1))
+stat.out0<-my.dat.plot5(mat,i,j,zxlab,zylab,zmain,zcol,do.sqrt,do.plot=T,in.boot=F)
+bootmat<-NULL
+y0<-predict(stat.out0$smstrmod,mat[,i])$y
+matb<-mat
+nm<-length(matb[,1])
+for(i1 in 1:nboot){
+	if(floor(i1/500)==(i1/500)){print(i1)}
+	zed<-sample(nm,replace=T)
+	matb<-mat[zed,]
+#print(matb)
+	stat.outb<-my.dat.plot5a(matb,mat,i,j,zxlab,zylab,zmain,zcol,do.sqrt,do.plot=F,in.boot=T)
+	Ybp<-predict(stat.outb$smstrmod,mat[,i])$y
+	if(pred.bound){
+		if(pivotal){
+			bootmat<-rbind(bootmat,stat.outb$resid.mod+Ybp-y0)
+		}else{
+			bootmat<-rbind(bootmat,stat.outb$resid.mod+Ybp)
+		}
+	}else{
+		if(pivotal){
+			bootmat<-rbind(bootmat,Ybp-y0)
+		}else{
+			bootmat<-rbind(bootmat,Ybp)
+		}
+	}
+
+}
+alpha<-(1-conf.lev)/2
+my.quant<-function(x,a=alpha){quantile(x,c(a,1-a))}
+bounds<-apply(bootmat,2,my.quant)
+if(pivotal){
+	bounds[1,]<-y0-bounds[1,]
+	bounds[2,]<-y0-bounds[2,]
+}
+x<-mat[,i]
+if(do.sqrt){
+	x<-sqrt(x)
+}
+o1<-order(x)
+lines(x[o1],bounds[1,o1],col=zcol+2)
+lines(x[o1],bounds[2,o1],col=zcol+2)
+}
+
+
+
+
+
+
+
+
+gui.bootstrapxy <-
+function(){
+library(tcltk)
+#,pred.bound=T,conf.lev=.95,pivotal=T
+inputs <- function(){
+
+   x <- tclVar("NOAA")
+   y <- tclVar("1")
+   z <- tclVar("2")
+   w<-tclVar("\"delta temp\"") 
+wa<-tclVar("\"disasters\"")
+wb<-tclVar("\"Disasters vs warming\"")
+zc<-tclVar("2")
+qc<-tclVar("F")
+rc<-tclVar("10000")
+za<-tclVar("T")
+zb<-tclVar(".95")
+wc<-tclVar("T")
+
+   tt <- tktoplevel()
+   tkwm.title(tt,"Choose parameters for new function                   ")
+   x.entry <- tkentry(tt, textvariable=x)
+   y.entry <- tkentry(tt, textvariable=y)
+   z.entry <- tkentry(tt, textvariable=z)
+   w.entry<-tkentry(tt, textvariable=w)  
+wa.entry<-tkentry(tt,textvariable=wa)
+wb.entry<-tkentry(tt,textvariable=wb)
+zc.entry<-tkentry(tt,textvariable=zc)
+qc.entry<-tkentry(tt,textvariable=qc)
+rc.entry<-tkentry(tt,textvariable=rc)
+za.entry<-tkentry(tt,textvariable=za)
+zb.entry<-tkentry(tt,textvariable=zb)
+wc.entry<-tkentry(tt,textvariable=wc)
+
+   reset <- function()
+    {
+     tclvalue(x)<-""
+     tclvalue(y)<-""
+     tclvalue(z)<-""
+	tclvalue(w)<-""
+tclvalue(wa.entry)<-""
+tclvalue(wb.entry)<-""
+tclvalue(zc.entry)<-""
+tclvalue(qc.entry)<-""
+tclvalue(rc.entry)<-""
+tclvalue(za.entry)<-""
+tclvalue(zb.entry)<-""
+tclvalue(wc.entry)<-""
+
+       }
+
+   reset.but <- tkbutton(tt, text="Reset", command=reset)
+
+   submit <- function() {
+     x <- tclvalue(x)
+     y <- tclvalue(y)
+     z <- tclvalue(z)
+       w<-tclvalue(w)
+	wa<-tclvalue(wa)
+	wb<-tclvalue(wb)
+	zc<-tclvalue(zc)  
+	qc<-tclvalue(qc)
+	rc<-tclvalue(rc)
+	za<-tclvalue(za)
+zb<-tclvalue(zb)
+wc<-tclvalue(wc)
+
+     e <- parent.env(environment())
+     e$x <- x
+     e$y <- y
+     e$z <- z
+e$w<-w
+e$wa<-wa
+e$wb<-wb
+e$zc<-zc
+e$qc<-qc
+e$rc<-rc
+e$za<-za
+e$zb<-zb
+e$wc<-wc
+
+        tkdestroy(tt)
+   }
+
+   submit.but <- tkbutton(tt, text="start", command=submit)
+   tkgrid(tklabel(tt,text="Input data matrix"),columnspan=2)
+   tkgrid(tklabel(tt,text="data"), x.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input X column"),columnspan=2)
+   tkgrid(tklabel(tt,text="i"), y.entry, pady=10, padx =30)
+
+
+   tkgrid(tklabel(tt,text="Input Y column"),columnspan=2)
+   tkgrid(tklabel(tt,text="j"), z.entry, pady=10, padx =30)
+
+  tkgrid(tklabel(tt,text="Input xaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Xaxis"), w.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input yaxis label"),columnspan=2)
+   tkgrid(tklabel(tt,text="Yaxis"), wa.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input plot title"),columnspan=2)
+   tkgrid(tklabel(tt,text="Plot title"), wb.entry, pady=10, padx =30)
+
+ tkgrid(tklabel(tt,text="Input color code"),columnspan=2)
+   tkgrid(tklabel(tt,text="Color code"),zc.entry, pady=10, padx =30)
+
+tkgrid(tklabel(tt,text="Input sqrt indicator"),columnspan=2)
+   tkgrid(tklabel(tt,text="Sqrt=T"),qc.entry, pady=10, padx =30)
+   
+tkgrid(tklabel(tt,text="Input nboot"),columnspan=2)
+   tkgrid(tklabel(tt,text="nboot"),rc.entry, pady=10, padx =30)
+
+tkgrid(tklabel(tt,text="Prediction Bound?"),columnspan=2)
+   tkgrid(tklabel(tt,text="Pbound=T"),za.entry, pady=10, padx =30)
+tkgrid(tklabel(tt,text="Conf.level"),columnspan=2)
+   tkgrid(tklabel(tt,text="Confidence"),zb.entry, pady=10, padx =30)
+tkgrid(tklabel(tt,text="Pivotal=T"),columnspan=2)
+   tkgrid(tklabel(tt,text="Pivotal"),wc.entry, pady=10, padx =30)
+
+
+   tkgrid(submit.but, reset.but)
+
+  tkwait.window(tt)
+  return(c(x,y,z,w,wa,wb,zc,qc,rc,za,zb,wc))
+}
+#Now run the function like:
+predictor_para <- inputs()
+print(predictor_para)
+mat<-eval(parse(text=predictor_para[1]))
+ind1<-eval(parse(text=predictor_para[2]))
+ind2<-eval(parse(text=predictor_para[3]))
+xlab<-eval(parse(text=predictor_para[4]))
+ylab<-eval(parse(text=predictor_para[5]))
+maintitle<-eval(parse(text=predictor_para[6]))
+zcol<-eval(parse(text=predictor_para[7]))
+zsqrt<-eval(parse(text=predictor_para[8]))
+znboot<-eval(parse(text=predictor_para[9]))
+zpred<-eval(parse(text=predictor_para[10]))
+zconf<-eval(parse(text=predictor_para[11]))
+zpivot<-eval(parse(text=predictor_para[12]))
+
+my.bootstrap3(mat,ind1,ind2,xlab,ylab, maintitle,zcol,zsqrt,znboot,zpred,zconf,zpivot)
+
+}
+
+
+
+
+
+
+
+
+
+
+
+### my.dat.plot5 plots 2 columns of the datasets with fits both a flexible spline and a simple linear spline. Then it works on the residuals for the both fits, calculates the sums of squares and uses them to compute F statistic and p-value for comparing the 2 models. In the end it returns fits, residuals and stats as a list.
+my.dat.plot5 <-
+function(mat=NOAA,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,do.plot=T,in.boot=T){
+if(in.boot){
+do.sqrt<-F
+}
+if(!do.sqrt){
+
+smstr<-smooth.spline(mat[,i],mat[,j])
+smstr.lin<-smooth.spline(mat[,i],mat[,j],df=2)
+if(do.plot){
+plot(mat[,i],mat[,j],xlab=zxlab,ylab=zylab,main=zmain)
+lines(smstr,col=zcol)
+lines(smstr.lin,col=(zcol+1))
+
+}
+resid1<-mat[,j]-predict(smstr,mat[,i])$y
+resid2<-mat[,j]-predict(smstr.lin,mat[,i])$y
+}else{
+smstr<-smooth.spline(mat[,i],sqrt(mat[,j]))
+smstr.lin<-smooth.spline(mat[,i],sqrt(mat[,j]),df=2)
+if(do.plot){
+plot(mat[,i],sqrt(mat[,j]),xlab=zxlab,ylab=zylab,main=zmain)
+lines(smstr,col=zcol)
+lines(smstr.lin,col=(zcol+1))
+}
+resid1<-sqrt(mat[,j])-predict(smstr,mat[,i])$y
+resid2<-sqrt(mat[,j])-predict(smstr.lin,mat[,i])$y
+}
+
+dfmod<-smstr$df
+dflin<-2
+ssmod<-sum(resid1^2)
+sslin<-sum(resid2^2)
+numss<-sslin-ssmod
+n1<-length(mat[,j])
+Fstat<-(numss/(dfmod-dflin))/(ssmod/(n1-dfmod))
+pvalue<-1-pf(Fstat,dfmod-dflin,n1-dfmod)
+stat.out<-list(smstrmod=smstr,smstrlin=smstr.lin,resid.mod=resid1,resid.lin=resid2,dfmod=dfmod,dflin=dflin,F=Fstat,P=pvalue,n=n1)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+### my.dat.plot5a fits a smooth spline and a linear spline on the bootstrap sample, then uses them to predict values on the original data. Then it calculates residuals from those predictions, computes sums of squares, the F statistic, and p-value, and returns all the results
+my.dat.plot5a <-
+function(mat=NOAA,mat0,i=3,j=2,zxlab,zylab,zmain,zcol,do.sqrt=F,do.plot=T,in.boot=T){
+if(in.boot){
+do.sqrt<-F
+}
+if(!do.sqrt){
+
+smstr<-smooth.spline(mat[,i],mat[,j])
+pstr<-predict(smstr,mat0[,i])
+smstr$x<-pstr$x
+smstr$y<-pstr$y
+smstr.lin<-smooth.spline(mat[,i],mat[,j],df=2)
+if(do.plot){
+plot(mat[,i],mat[,j],xlab=zxlab,ylab=zylab,main=zmain)
+lines(smstr,col=zcol)
+lines(smstr.lin,col=(zcol+1))
+
+}
+resid1<-mat[,j]-predict(smstr,mat[,i])$y
+resid2<-mat[,j]-predict(smstr.lin,mat[,i])$y
+}else{
+smstr<-smooth.spline(mat[,i],sqrt(mat[,j]))
+pstr<-predict(smstr,mat0[,i])
+smstr$x<-pstr$x
+smstr$y<-pstr$y
+
+smstr.lin<-smooth.spline(mat[,i],sqrt(mat[,j]),df=2)
+if(do.plot){
+plot(mat[,i],sqrt(mat[,j]),xlab=zxlab,ylab=zylab,main=zmain)
+lines(smstr,col=zcol)
+lines(smstr.lin,col=(zcol+1))
+}
+resid1<-sqrt(mat[,j])-predict(smstr,mat[,i])$y
+resid2<-sqrt(mat[,j])-predict(smstr.lin,mat[,i])$y
+}
+
+dfmod<-smstr$df
+dflin<-2
+ssmod<-sum(resid1^2)
+sslin<-sum(resid2^2)
+numss<-sslin-ssmod
+n1<-length(mat[,j])
+Fstat<-(numss/(dfmod-dflin))/(ssmod/(n1-dfmod))
+pvalue<-pf(Fstat,dfmod-dflin,n1-dfmod)
+stat.out<-list(smstrmod=smstr,smstrlin=smstr.lin,resid.mod=resid1,resid.lin=resid2,dfmod=dfmod,dflin=dflin,F=Fstat,P=pvalue,n=n1)
+}
+
+```

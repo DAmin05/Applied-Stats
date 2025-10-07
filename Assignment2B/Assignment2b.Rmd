@@ -1,0 +1,280 @@
+---
+title: "<center>Assignment2b</center>"
+author: "<center>Dev Amin , Manan Patel & Prisha Shah</center>"
+date: "<center>2025-09-19</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Loading Datasets
+
+```{r load_data}
+NOAAnew <- read.csv('NOAAnew.csv')
+NOAAold <- read.csv("NOAA+GISS.csv")
+set.seed(123)
+
+#renaming columns so that both files have same column names
+names(NOAAnew)[names(NOAAnew) == "X.disaster"] <- "disasters"
+names(NOAAold)[names(NOAAold) == "X.disaster"] <- "disasters"
+names(NOAAold)[names(NOAAold) == "delta temp"] <- "delta.temp"
+
+head(NOAAnew)
+head(NOAAold)
+```
+
+
+### Comparing Bends
+```{r compare_bends}
+#function to create and fit spline
+bends <- function(data_new , data_old , x , y , xLabel , yLabel , title)
+{
+  if(x == "temperature")
+  {
+    #smooth spline for temp vs disasters with df=7
+    fit_new <- smooth.spline(data_new[[x]] , data_new[[y]] , df = 7)
+    fit_old <- smooth.spline(data_old[[x]] , data_old[[y]] , df = 7)
+  }
+  else
+  {
+    #smooth spline for year vs disaster with df=7
+    fit_new <- smooth.spline(data_new[[x]] , data_new[[y]] , df = 7)
+    fit_old <- smooth.spline(data_old[[x]] , data_old[[y]] , df = 7)
+  }
+  
+  #creating data of predictions
+  x_range_new <- seq(min(data_new[[x]]) , max(data_new[[x]]) , length.out = 100)
+  x_range_old <- seq(min(data_old[[x]]) , max(data_old[[x]]) , length.out = 100)
+  pred_new <- predict(fit_new , x_range_new)
+  pred_old <- predict(fit_old , x_range_old)
+  
+  #plotting the curves
+  plot(data_new[[x]] , data_new[[y]] , col = "blue" , pch = 19 , 
+       xlim = range(c(data_new[[x]] , data_old[[x]])) , ylim = range(c(data_new[[y]] , data_old[[y]])) ,
+       xlab = xLabel , ylab = yLabel , main = title)
+  points(data_old[[x]] , data_old[[y]] , col = "red" , pch = 17)
+  lines(pred_new$x , pred_new$y , col = "blue" , lwd = 2)
+  lines(pred_old$x , pred_old$y , col = "red" , lwd = 2 , lty = 2)
+  legend("topleft" , legend = c("NOAAnew (~2024)", "NOAAold (~2016)") , col = c("blue" , "red") , pch = c(19 , 17) , lty = c(1 , 2) , lwd = 2)
+  
+  
+  
+  return(list(fit_new = fit_new , fit_old = fit_old))
+}
+
+par(mfrow = c(1 , 2))
+fit_temp <- bends(NOAAnew , NOAAold , "delta.temp" , "disasters" , "delta temp" , "Billion Dollar Disaster" ,"Temperature vs Disaster")
+fit_year <- bends(NOAAnew , NOAAold , "year" , "disasters" , "year" , "Billion Dollar Disaster" , "Year vs Disaster")
+
+```
+
+
+### Bootstrap
+```{r bootstrap}
+boot_spline <- function(x , y , x_new , nboot = 10000 , df = NULL , conf.level = .90)
+{
+  n <- length(x)
+  
+  #original model fit
+  if (is.null(df)) 
+  {
+    fit_orig <- smooth.spline(x , y)
+  } 
+  else 
+  {
+    fit_orig <- smooth.spline(x , y , df = df)
+  }
+  
+  #getting fitted values and residuals
+  fitted_orig <- predict(fit_orig , x)$y
+  resid_orig <- y - fitted_orig
+  
+  #predictions for new x values
+  pred_orig <- predict(fit_orig , x_new)$y
+  
+  #bootstrap matrix of predictions
+  boot_preds <- matrix(NA , nrow = nboot , ncol = length(x_new))
+  
+  for (i in 1:nboot) 
+  {
+    #resampling residuals
+    boot_resid <- sample(resid_orig , n , replace = TRUE)
+    
+    #creating bootstrap y values
+    boot_y <- fitted_orig + boot_resid
+    
+    #fitting spline to bootstrap data
+    if (is.null(df)) {
+      boot_fit <- smooth.spline(x , boot_y)
+    } else {
+      boot_fit <- smooth.spline(x , boot_y , df = df)
+    }
+    
+    #prediction for new x values
+    boot_preds[i, ] <- predict(boot_fit , x_new)$y
+  }
+  
+  #prediction bounds
+  alpha <- 1 - conf.level
+  lower_bound <- apply(boot_preds , 2 , quantile , probs = alpha/2)
+  upper_bound <- apply(boot_preds , 2 , quantile , probs = 1 - alpha/2)
+  
+  return(list(x_new = x_new , predictions = pred_orig , lower = lower_bound , upper = upper_bound , boot_preds = boot_preds , fit = fit_orig))
+}
+```
+
+
+### Prediction Boudns for 2025 and 2028 (Year as Predictor)
+```{r prediction}
+new_years <- c(2025, 2028)
+
+
+boot_year_results <- boot_spline(x = NOAAnew$year , y = NOAAnew$disasters , x_new = new_years , nboot = 10000 , df = 7 , conf.level = 0.90)
+
+#displaying bootstrap results
+cat("90% Prediction Bounds for Billion Dollar Disasters:")
+for (i in 1:length(new_years)) 
+{
+  cat(sprintf("Year %d: %.1f [90%% CI: %.1f - %.1f]\n" , new_years[i] , boot_year_results$predictions[i] , boot_year_results$lower[i] , boot_year_results$upper[i]))
+}
+
+#plotting results with prediction bounds
+plot(NOAAnew$year , NOAAnew$disasters , xlim = c(min(NOAAnew$year), 2030) , ylim = c(0, max(c(NOAAnew$disasters, boot_year_results$upper)) * 1.1) , xlab = "Year" , ylab = "Billion Dollar Disasters" , main = "Disasters vs Year with 90% Prediction Bounds", pch = 19 , col = "blue")
+
+#adding fitted line on graph
+year_seq <- seq(min(NOAAnew$year) , 2030 , by = 0.5)
+pred_seq <- predict(boot_year_results$fit , year_seq)
+lines(pred_seq$x , pred_seq$y , col = "blue" , lwd = 2)
+
+#adding predictions and bounds on graph
+points(new_years , boot_year_results$predictions , col = "red" , pch = 17 , cex = 1.5)
+segments(new_years, boot_year_results$lower , new_years , boot_year_results$upper, col = "red" , lwd = 2)
+
+# Add error bars
+arrows(new_years , boot_year_results$lower , new_years , boot_year_results$upper , code = 3 , angle = 90 , length = 0.1 , col = "red" , lwd = 2)
+
+legend("topleft" , legend = c("Observed data" , "Fitted curve" , "Predictions with 90% CI") , col = c("blue" , "blue" , "red") , pch = c(19 , NA , 17) , lty = c(NA , 1 , NA) , lwd = c(NA , 2 , NA))
+
+```
+
+### Extraploation using Temperature
+```{r extraploation}
+#model of temp over time
+temp_time_fit <- smooth.spline(NOAAnew$year , NOAAnew$delta.temp , df = 5)
+
+#prediction of temperatures for 2025 and 2028
+pred_temps_2025_2028 <- predict(temp_time_fit, new_years)$y
+cat(sprintf("Prediction of temperature anomaly for 2025: %.3f\n" , pred_temps_2025_2028[1]))
+cat(sprintf("Prediction of temperature anomaly for 2028: %.3f\n" , pred_temps_2025_2028[2]))
+
+#bootstrap prediction using temp
+boot_temp_results <- boot_spline(x = NOAAnew$delta.temp , y = NOAAnew$disasters , x_new = pred_temps_2025_2028 , nboot = 10000 , conf.level = 0.90)
+
+
+for (i in 1:length(new_years)) 
+{
+  cat(sprintf("Year %d (temp=%.3f): %.1f [90%% CI: %.1f - %.1f]\n" , new_years[i] , pred_temps_2025_2028[i] , boot_temp_results$predictions[i] , boot_temp_results$lower[i] , boot_temp_results$upper[i]))
+}
+
+```
+
+### Significance of Bend
+```{r significance}
+#function to compare the curvature between old and new data
+bend_sginificance <- function(data_new , data_old , x_var , y_var) 
+{
+  fit_new <- smooth.spline(data_new[[x_var]] , data_new[[y_var]])
+  fit_old <- smooth.spline(data_old[[x_var]] , data_old[[y_var]])
+  
+  #second derivatives curvature at common points
+  x_common <- seq(min(data_old[[x_var]]) , max(data_old[[x_var]]) , length.out = 50)
+  
+  #getting second derivatives
+  deriv2_new <- predict(fit_new , x_common , deriv = 2)$y
+  deriv2_old <- predict(fit_old , x_common , deriv = 2)$y
+  
+  #comparing average absolute curvature
+  avg_curv_new <- mean(abs(deriv2_new))
+  avg_curv_old <- mean(abs(deriv2_old))
+  
+  #ratio
+  curv_ratio <- avg_curv_new / avg_curv_old
+  
+  
+  return(list(avg_curv_new = avg_curv_new , avg_curv_old = avg_curv_old , ratio = curv_ratio , deriv2_new = deriv2_new , deriv2_old = deriv2_old , x_points = x_common))
+  
+}
+
+#Checking the bends
+bend_year <- bend_sginificance(NOAAnew , NOAAold , "year" , "disasters")
+bend_temp <- bend_sginificance(NOAAnew , NOAAold , "delta.temp" , "disasters")
+
+cat("Curvature Analysis of Year vs Disasters:")
+cat(sprintf("Average curvature NOAAnew: %.3f" , bend_year$avg_curv_new))
+cat(sprintf("Average curvature NOAAold: %.3f" , bend_year$avg_curv_old))
+cat(sprintf("Ratio new/old: %.3f" , bend_year$ratio))
+
+cat("Curvature Analysis of Temperature vs Disasters:")
+cat(sprintf("Average curvature NOAAnew: %.3f" , bend_temp$avg_curv_new))
+cat(sprintf("Average curvature NOAAold: %.3f" , bend_temp$avg_curv_old))
+cat(sprintf("Ratio new/old: %.3f" , bend_temp$ratio))
+
+cat("Interpretation:")
+if (bend_year$ratio > 1.5) 
+{
+  cat("The bend in the Year-Disasters relationship is significantly more pronounced in the new data")
+} else if (bend_year$ratio > 1.1) 
+{
+  cat("The bend in the Year-Disasters relationship is moderately more pronounced in the new data")
+} else 
+{
+  cat("The bend in the Year-Disasters relationship is similar between old and new data")
+}
+
+```
+
+### Visualization
+```{r vis}
+#year vs disasters comparison
+plot(NOAAnew$year , NOAAnew$disasters , col = "blue" , pch = 19 , xlim = c(1980, 2030) , ylim = c(0 , max(NOAAnew$disasters) * 1.2) , xlab = "Year" , ylab = "Disasters" , main = "Year vs Disasters Comparison")
+points(NOAAold$year , NOAAold$disasters , col = "red" , pch = 17)
+year_seq_plot <- seq(1980 , 2030 , by = 0.5)
+pred_new_year <- predict(smooth.spline(NOAAnew$year , NOAAnew$disasters , df = 7) , year_seq_plot)
+pred_old_year <- predict(smooth.spline(NOAAold$year , NOAAold$disasters , df = 7) , seq(min(NOAAold$year) , max(NOAAold$year) , by = 0.5))
+lines(pred_new_year$x , pred_new_year$y , col = "blue" , lwd = 2)
+lines(pred_old_year$x , pred_old_year$y , col = "red" , lwd = 2 , lty = 2)
+points(new_years , boot_year_results$predictions , col = "green" , pch = 15 , cex = 1.5)
+legend("topleft" , c("NOAAnew" , "NOAAold" , "2025/2028 Pred") , col = c("blue" , "red" , "green") , pch = c(19 , 17 , 15) , cex = 0.8)
+
+#temp vs disasters comparison  
+plot(NOAAnew$delta.temp , NOAAnew$disasters , col = "blue" , pch = 19 , xlab = "Delta Temperature" , ylab = "Disasters" ,  main = "Temperature vs Disasters Comparison")
+points(NOAAold$delta.temp , NOAAold$disasters , col = "red" , pch = 17)
+temp_seq_new <- seq(min(NOAAnew$delta.temp) , max(NOAAnew$delta.temp) , length.out = 100)
+temp_seq_old <- seq(min(NOAAold$delta.temp) , max(NOAAold$delta.temp) , length.out = 100)
+pred_new_temp <- predict(smooth.spline(NOAAnew$delta.temp , NOAAnew$disasters) , temp_seq_new)
+pred_old_temp <- predict(smooth.spline(NOAAold$delta.temp , NOAAold$disasters) , temp_seq_old)
+lines(pred_new_temp$x, pred_new_temp$y , col = "blue" , lwd = 2)
+lines(pred_old_temp$x, pred_old_temp$y , col = "red" , lwd = 2 , lty = 2)
+legend("topleft" , c("NOAAnew" , "NOAAold") , col = c("blue" , "red") , pch = c(19 , 17) , lty = c(1 , 2) , cex = 0.8)
+
+#prediction intervals
+plot(NOAAnew$year , NOAAnew$disasters , xlim = c(2010 , 2030) , ylim = c(0 , max(boot_year_results$upper) * 1.1) , xlab = "Year" , ylab = "Disasters" , main = "Predictions with 90% CI Year-based" , pch = 19 , col = "blue")
+year_seq_pred <- seq(2010 , 2030 , by = 0.5)
+pred_curve <- predict(boot_year_results$fit , year_seq_pred)
+lines(pred_curve$x , pred_curve$y , col = "blue", lwd = 2)
+points(new_years , boot_year_results$predictions , col = "red" , pch = 17 , cex = 1.5)
+arrows(new_years , boot_year_results$lower , new_years , boot_year_results$upper , code = 3 , angle = 90 , length = 0.1 , col = "red" , lwd = 2)
+text(new_years , boot_year_results$upper + 1 , labels = sprintf("%.1f", boot_year_results$predictions) , col = "red")
+
+#curvature comparison
+plot(bend_year$x_points , bend_year$deriv2_new , type = "l" , col = "blue" , lwd = 2 , xlab = "Year" , ylab = "Second Derivative" , main = "Curvature Comparison of Year vs Disasters" , ylim = range(c(bend_year$deriv2_new , bend_year$deriv2_old)))
+lines(bend_year$x_points , bend_year$deriv2_old , col = "red" , lwd = 2 , lty = 2)
+abline(h = 0 , col = "gray" , lty = 3)
+legend("topright" , c("NOAAnew" , "NOAAold") , col = c("blue" , "red") , lty = c(1 , 2) , lwd = 2 , cex = 0.8)
+
+```
+
+
+
