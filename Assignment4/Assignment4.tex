@@ -1,0 +1,667 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={ Assignment4 },
+  pdfauthor={ Dev Amin, Manan Patel \& Prisha Shah },
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{\\
+Assignment4\\}
+\author{\strut \\
+Dev Amin, Manan Patel \& Prisha Shah\\}
+\date{\strut \\
+2025-10-08\\}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ISLR)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(leaps)}
+\FunctionTok{library}\NormalTok{(lars)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loaded lars 1.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+
+\CommentTok{\#building a second order formula, mains + all pairwise interactions + all squares}
+\NormalTok{second\_order\_formula }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(y, xvars)}
+\NormalTok{\{}
+\NormalTok{  squares }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"I("}\NormalTok{, xvars, }\StringTok{"\^{}2)"}\NormalTok{, }\AttributeTok{collapse =} \StringTok{" + "}\NormalTok{)}
+\NormalTok{  mains\_pairs }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"("}\NormalTok{, }\FunctionTok{paste}\NormalTok{(xvars, }\AttributeTok{collapse =} \StringTok{" + "}\NormalTok{) , }\StringTok{")\^{}2"}\NormalTok{)}
+  \FunctionTok{as.formula}\NormalTok{(}\FunctionTok{paste}\NormalTok{(y , }\StringTok{"\textasciitilde{}"}\NormalTok{ , mains\_pairs , }\StringTok{"+"}\NormalTok{ , squares))}
+\NormalTok{\}}
+
+\CommentTok{\#computing press using hat matrix identity}
+\NormalTok{press\_value }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(fit)}
+\NormalTok{\{}
+\NormalTok{  e }\OtherTok{\textless{}{-}} \FunctionTok{residuals}\NormalTok{(fit)}
+\NormalTok{  h }\OtherTok{\textless{}{-}} \FunctionTok{hatvalues}\NormalTok{(fit)}
+  \FunctionTok{sum}\NormalTok{((e }\SpecialCharTok{/}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ h))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{\}}
+
+\CommentTok{\#aligning names and predicting from the leapsselected lm on a test model matrix}
+\NormalTok{safe\_predict\_from\_leaps }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(leaps\_fit, mm\_test)}
+\NormalTok{\{}
+\NormalTok{  coefs }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(leaps\_fit)}
+\NormalTok{  terms }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(coefs)}
+\NormalTok{  n }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(mm\_test)}
+\NormalTok{  Xnew }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, n, }\FunctionTok{length}\NormalTok{(coefs))}
+  \FunctionTok{colnames}\NormalTok{(Xnew) }\OtherTok{\textless{}{-}}\NormalTok{ terms}
+  \ControlFlowTok{if}\NormalTok{ (}\StringTok{"(Intercept)"} \SpecialCharTok{\%in\%}\NormalTok{ terms) Xnew[, }\StringTok{"(Intercept)"}\NormalTok{] }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{  test\_names }\OtherTok{\textless{}{-}} \FunctionTok{make.names}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(mm\_test))}
+  \ControlFlowTok{for}\NormalTok{ (nm }\ControlFlowTok{in}\NormalTok{ terms)}
+\NormalTok{  \{}
+    \ControlFlowTok{if}\NormalTok{ (nm }\SpecialCharTok{==} \StringTok{"(Intercept)"}\NormalTok{) }\ControlFlowTok{next}
+\NormalTok{    pos }\OtherTok{\textless{}{-}} \FunctionTok{match}\NormalTok{(}\FunctionTok{make.names}\NormalTok{(nm), test\_names)}
+    \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(pos)) Xnew[, nm] }\OtherTok{\textless{}{-}}\NormalTok{ mm\_test[, pos]}
+\NormalTok{  \}}
+  \FunctionTok{as.numeric}\NormalTok{(Xnew }\SpecialCharTok{\%*\%}\NormalTok{ coefs)}
+\NormalTok{\}}
+
+\CommentTok{\#summarizing prediction performance}
+\NormalTok{perf\_summary }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(y\_true, y\_pred)}
+\NormalTok{\{}
+\NormalTok{  r }\OtherTok{\textless{}{-}} \FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{cor}\NormalTok{(y\_true , y\_pred , }\AttributeTok{use =} \StringTok{"complete.obs"}\NormalTok{))}
+\NormalTok{  rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((y\_true }\SpecialCharTok{{-}}\NormalTok{ y\_pred)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  mae }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(y\_true }\SpecialCharTok{{-}}\NormalTok{ y\_pred))}
+\NormalTok{  sst }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{((y\_true }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(y\_true))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  sse }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{((y\_true }\SpecialCharTok{{-}}\NormalTok{ y\_pred)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  r2 }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ sse }\SpecialCharTok{/}\NormalTok{ sst}
+  \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Correlation =}\NormalTok{ r , }\AttributeTok{RMSE =}\NormalTok{ rmse , }\AttributeTok{MAE =}\NormalTok{ mae , }\AttributeTok{R2 =}\NormalTok{ r2)}
+\NormalTok{\}}
+
+
+\CommentTok{\#preparing origin{-}specific data, 1=usa, 2=europe, 3=japan}
+\NormalTok{prepare\_origin\_df }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(origin\_val)}
+\NormalTok{\{}
+\NormalTok{  df }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(ISLR}\SpecialCharTok{::}\NormalTok{Auto) }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(origin }\SpecialCharTok{==}\NormalTok{ origin\_val) }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{origin, }\SpecialCharTok{{-}}\NormalTok{name)}
+\NormalTok{  y }\OtherTok{\textless{}{-}} \StringTok{"mpg"}
+\NormalTok{  xvars }\OtherTok{\textless{}{-}} \FunctionTok{setdiff}\NormalTok{(}\FunctionTok{names}\NormalTok{(df) , y)}
+\NormalTok{  xvars }\OtherTok{\textless{}{-}}\NormalTok{ xvars[}\FunctionTok{sapply}\NormalTok{(df[, xvars , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{] , is.numeric)]}
+  \FunctionTok{list}\NormalTok{(}\AttributeTok{df =}\NormalTok{ df , }\AttributeTok{y =}\NormalTok{ y , }\AttributeTok{xvars =}\NormalTok{ xvars)}
+\NormalTok{\}}
+
+
+\CommentTok{\#fitting leaps and lars and returning predictions and metrics}
+\NormalTok{fit\_models }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(df, y, xvars, }\AttributeTok{train\_frac =} \FloatTok{0.7}\NormalTok{, }\AttributeTok{seed =} \DecValTok{123}\NormalTok{)}
+\NormalTok{\{}
+  \FunctionTok{set.seed}\NormalTok{(seed)}
+
+  \CommentTok{\#preparing data}
+\NormalTok{  df\_use }\OtherTok{\textless{}{-}}\NormalTok{ df[, }\FunctionTok{c}\NormalTok{(y , xvars) , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{] }\SpecialCharTok{|\textgreater{}} \FunctionTok{na.omit}\NormalTok{()}
+
+  \CommentTok{\#splitting into train and test}
+\NormalTok{  n }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(df\_use)}
+\NormalTok{  train\_idx }\OtherTok{\textless{}{-}} \FunctionTok{sample.int}\NormalTok{(n , }\AttributeTok{size =} \FunctionTok{floor}\NormalTok{(train\_frac }\SpecialCharTok{*}\NormalTok{ n))}
+\NormalTok{  train\_df }\OtherTok{\textless{}{-}}\NormalTok{ df\_use[train\_idx , , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{  test\_df  }\OtherTok{\textless{}{-}}\NormalTok{ df\_use[}\SpecialCharTok{{-}}\NormalTok{train\_idx , , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+
+  \CommentTok{\#building second order matrices}
+\NormalTok{  f2 }\OtherTok{\textless{}{-}} \FunctionTok{second\_order\_formula}\NormalTok{(y , xvars)}
+\NormalTok{  mm\_train }\OtherTok{\textless{}{-}} \FunctionTok{model.matrix}\NormalTok{(f2 , train\_df)}
+\NormalTok{  mm\_test  }\OtherTok{\textless{}{-}} \FunctionTok{model.matrix}\NormalTok{(f2 , test\_df)}
+\NormalTok{  y\_train  }\OtherTok{\textless{}{-}} \FunctionTok{model.response}\NormalTok{(}\FunctionTok{model.frame}\NormalTok{(f2 , train\_df))}
+\NormalTok{  y\_test   }\OtherTok{\textless{}{-}} \FunctionTok{model.response}\NormalTok{(}\FunctionTok{model.frame}\NormalTok{(f2 , test\_df))}
+
+  \CommentTok{\#selecting with leaps, first top 5 by cp then picking best by press}
+\NormalTok{  regfit }\OtherTok{\textless{}{-}} \FunctionTok{regsubsets}\NormalTok{(mm\_train[, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{ , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{] , y\_train , }\AttributeTok{nbest =} \DecValTok{1}\NormalTok{ , }\AttributeTok{nvmax =} \FunctionTok{ncol}\NormalTok{(mm\_train) }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{ , }\AttributeTok{method =} \StringTok{"exhaustive"}\NormalTok{)}
+\NormalTok{  regsum }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(regfit)}
+\NormalTok{  top5 }\OtherTok{\textless{}{-}} \FunctionTok{order}\NormalTok{(regsum}\SpecialCharTok{$}\NormalTok{cp)[}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{min}\NormalTok{(}\DecValTok{5}\NormalTok{ , }\FunctionTok{length}\NormalTok{(regsum}\SpecialCharTok{$}\NormalTok{cp))]}
+
+\NormalTok{  best\_press }\OtherTok{\textless{}{-}} \ConstantTok{Inf}
+\NormalTok{  best\_fit }\OtherTok{\textless{}{-}} \ConstantTok{NULL}
+\NormalTok{  train\_cols }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(mm\_train)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in}\NormalTok{ top5)}
+\NormalTok{  \{}
+\NormalTok{    keep }\OtherTok{\textless{}{-}}\NormalTok{ regsum}\SpecialCharTok{$}\NormalTok{which[i , }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+\NormalTok{    chosen }\OtherTok{\textless{}{-}}\NormalTok{ train\_cols[keep]}
+\NormalTok{    fit }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y\_train }\SpecialCharTok{\textasciitilde{}}\NormalTok{ . , }\AttributeTok{data =} \FunctionTok{as.data.frame}\NormalTok{(mm\_train[ , chosen , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{]))}
+\NormalTok{    pr }\OtherTok{\textless{}{-}} \FunctionTok{press\_value}\NormalTok{(fit)}
+    \ControlFlowTok{if}\NormalTok{ (pr }\SpecialCharTok{\textless{}}\NormalTok{ best\_press)}
+\NormalTok{    \{}
+\NormalTok{      best\_press }\OtherTok{\textless{}{-}}\NormalTok{ pr}
+\NormalTok{      best\_fit }\OtherTok{\textless{}{-}}\NormalTok{ fit}
+\NormalTok{    \}}
+\NormalTok{  \}}
+
+  \CommentTok{\#predicting with leaps on test}
+\NormalTok{  pred\_leaps }\OtherTok{\textless{}{-}} \FunctionTok{safe\_predict\_from\_leaps}\NormalTok{(best\_fit , mm\_test)}
+
+  \CommentTok{\#fitting lars and choosing step by min cp}
+\NormalTok{  x\_train }\OtherTok{\textless{}{-}}\NormalTok{ mm\_train[ , }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{ , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{  x\_test  }\OtherTok{\textless{}{-}}\NormalTok{ mm\_test[ , }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{ , drop }\OtherTok{=} \ConstantTok{FALSE}\NormalTok{]}
+\NormalTok{  lars\_fit }\OtherTok{\textless{}{-}} \FunctionTok{lars}\NormalTok{(x\_train , y\_train , }\AttributeTok{type =} \StringTok{"lar"}\NormalTok{ , }\AttributeTok{normalize =} \ConstantTok{TRUE}\NormalTok{ , }\AttributeTok{intercept =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  best\_step }\OtherTok{\textless{}{-}} \FunctionTok{which.min}\NormalTok{(lars\_fit}\SpecialCharTok{$}\NormalTok{Cp)}
+\NormalTok{  pred\_lars }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(lars\_fit , x\_test , }\AttributeTok{s =}\NormalTok{ best\_step , }\AttributeTok{type =} \StringTok{"fit"}\NormalTok{ , }\AttributeTok{mode =} \StringTok{"step"}\NormalTok{)}\SpecialCharTok{$}\NormalTok{fit)}
+
+  \CommentTok{\#metric}
+\NormalTok{  perf }\OtherTok{\textless{}{-}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{bind\_rows}\NormalTok{(dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\FunctionTok{perf\_summary}\NormalTok{(y\_test , pred\_leaps) , }\AttributeTok{Method =} \StringTok{"LEAPS"}\NormalTok{) , dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\FunctionTok{perf\_summary}\NormalTok{(y\_test , pred\_lars) ,  }\AttributeTok{Method =} \StringTok{"LARS"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{relocate}\NormalTok{(Method)}
+
+  \FunctionTok{list}\NormalTok{(}\AttributeTok{y\_test =}\NormalTok{ y\_test , }\AttributeTok{pred\_leaps =}\NormalTok{ pred\_leaps , }\AttributeTok{pred\_lars  =}\NormalTok{ pred\_lars , }\AttributeTok{perf =}\NormalTok{ perf , }\AttributeTok{leaps\_terms =} \FunctionTok{names}\NormalTok{(}\FunctionTok{coef}\NormalTok{(best\_fit)) , }\AttributeTok{lars\_nonzero =} \FunctionTok{coef}\NormalTok{(lars\_fit , }\AttributeTok{s =}\NormalTok{ best\_step , }\AttributeTok{mode =} \StringTok{"step"}\NormalTok{)[}\FunctionTok{abs}\NormalTok{(}\FunctionTok{coef}\NormalTok{(lars\_fit , }\AttributeTok{s =}\NormalTok{ best\_step , }\AttributeTok{mode =} \StringTok{"step"}\NormalTok{)) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{]}
+\NormalTok{  )}
+\NormalTok{\}}
+
+
+\CommentTok{\#countries analysis}
+
+\CommentTok{\#USA}
+
+\NormalTok{usa\_prep }\OtherTok{\textless{}{-}} \FunctionTok{prepare\_origin\_df}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{usa\_res  }\OtherTok{\textless{}{-}} \FunctionTok{fit\_models}\NormalTok{(usa\_prep}\SpecialCharTok{$}\NormalTok{df , usa\_prep}\SpecialCharTok{$}\NormalTok{y , usa\_prep}\SpecialCharTok{$}\NormalTok{xvars)}
+
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Actual =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{y\_test , }\AttributeTok{Predicted =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\FunctionTok{aes}\NormalTok{(Actual, Predicted)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#1f78b4"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{ , }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"USA: LEAPS predictions (corr ="}\NormalTok{ , }\FunctionTok{round}\NormalTok{(}\FunctionTok{cor}\NormalTok{(usa\_res}\SpecialCharTok{$}\NormalTok{y\_test , usa\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\DecValTok{3}\NormalTok{) , }\StringTok{")"}\NormalTok{) , }\AttributeTok{x =} \StringTok{"actual mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"predicted mpg"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Actual =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{y\_test , }\AttributeTok{Predicted =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\FunctionTok{aes}\NormalTok{(Actual , Predicted)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#e31a1c"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{,  }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{ , }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"USA: LARS predictions (corr ="}\NormalTok{ , }\FunctionTok{round}\NormalTok{(}\FunctionTok{cor}\NormalTok{(usa\_res}\SpecialCharTok{$}\NormalTok{y\_test , usa\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\DecValTok{3}\NormalTok{), }\StringTok{")"}\NormalTok{) , }\AttributeTok{x =} \StringTok{"actual mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"predicted mpg"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Pred =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps , }\AttributeTok{Resid =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{y\_test }\SpecialCharTok{{-}}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\FunctionTok{aes}\NormalTok{(Pred, Resid)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#33a02c"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"USA: LEAPS residuals"}\NormalTok{ , }\AttributeTok{x =} \StringTok{"predicted mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"residuals"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Pred =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{pred\_lars , }\AttributeTok{Resid =}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{y\_test }\SpecialCharTok{{-}}\NormalTok{ usa\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\FunctionTok{aes}\NormalTok{(Pred, Resid)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#ff7f00"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"USA: LARS residuals"}\NormalTok{ , }\AttributeTok{x =} \StringTok{"predicted mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"residuals"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-4.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"USA performance:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## USA performance:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(usa\_res}\SpecialCharTok{$}\NormalTok{perf)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Method Correlation      RMSE       MAE           R2
+## 1  LEAPS   0.1445620 98.445102 96.584174 -230.7387491
+## 2   LARS   0.9626585  1.774634  1.441939    0.9246943
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"USA: leaps terms:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## USA: leaps terms:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(usa\_res}\SpecialCharTok{$}\NormalTok{leaps\_terms)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "(Intercept)"               "cylinders"                
+## [3] "acceleration"              "`cylinders:weight`"       
+## [5] "`cylinders:acceleration`"  "`horsepower:acceleration`"
+## [7] "`weight:year`"             "`acceleration:year`"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"USA: lars non{-}zero coefficients:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## USA: lars non-zero coefficients:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(usa\_res}\SpecialCharTok{$}\NormalTok{lars\_nonzero , }\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                 cylinders              displacement                    weight 
+##                   2.74630                  -0.38838                   0.02138 
+##              acceleration            I(cylinders^2)         I(displacement^2) 
+##                  -8.23560                  -0.09100                   0.00002 
+##           I(horsepower^2)         I(acceleration^2)                 I(year^2) 
+##                  -0.00014                   0.02513                   0.00330 
+##          cylinders:weight    cylinders:acceleration            cylinders:year 
+##                   0.00128                   0.21835                  -0.12392 
+##   displacement:horsepower displacement:acceleration         displacement:year 
+##                   0.00013                   0.00003                   0.00481 
+##   horsepower:acceleration               weight:year         acceleration:year 
+##                  -0.00219                  -0.00046                   0.08055
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Europe}
+
+\NormalTok{eu\_prep }\OtherTok{\textless{}{-}} \FunctionTok{prepare\_origin\_df}\NormalTok{(}\DecValTok{2}\NormalTok{)}
+\NormalTok{eu\_res  }\OtherTok{\textless{}{-}} \FunctionTok{fit\_models}\NormalTok{(eu\_prep}\SpecialCharTok{$}\NormalTok{df , eu\_prep}\SpecialCharTok{$}\NormalTok{y , eu\_prep}\SpecialCharTok{$}\NormalTok{xvars)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in leaps.setup(x, y, wt = weights, nbest = nbest, nvmax = nvmax, : 1
+## linear dependencies found
+\end{verbatim}
+
+\begin{verbatim}
+## Reordering variables and trying again:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Actual =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{y\_test, }\AttributeTok{Predicted =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps), }\FunctionTok{aes}\NormalTok{(Actual , Predicted)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#1f78b4"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{ , }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Europe: LEAPS predictions (corr ="}\NormalTok{ , }\FunctionTok{round}\NormalTok{(}\FunctionTok{cor}\NormalTok{(eu\_res}\SpecialCharTok{$}\NormalTok{y\_test , eu\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\DecValTok{3}\NormalTok{) , }\StringTok{")"}\NormalTok{) , }\AttributeTok{x =} \StringTok{"actual mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"predicted mpg"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-5.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Actual =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{y\_test , }\AttributeTok{Predicted =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\FunctionTok{aes}\NormalTok{(Actual , Predicted)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#e31a1c"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{ , }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Europe: LARS predictions (corr ="}\NormalTok{ , }\FunctionTok{round}\NormalTok{(}\FunctionTok{cor}\NormalTok{(eu\_res}\SpecialCharTok{$}\NormalTok{y\_test , eu\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\DecValTok{3}\NormalTok{), }\StringTok{")"}\NormalTok{) , }\AttributeTok{x =} \StringTok{"actual mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"predicted mpg"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-6.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Pred =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps , }\AttributeTok{Resid =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{y\_test }\SpecialCharTok{{-}}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\FunctionTok{aes}\NormalTok{(Pred , Resid)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#33a02c"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Europe: LEAPS residuals"}\NormalTok{ , }\AttributeTok{x =} \StringTok{"predicted mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"residuals"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-7.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Pred =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{pred\_lars , }\AttributeTok{Resid =}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{y\_test }\SpecialCharTok{{-}}\NormalTok{ eu\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\FunctionTok{aes}\NormalTok{(Pred, Resid)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#ff7f00"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Europe: LARS residuals"}\NormalTok{ , }\AttributeTok{x =} \StringTok{"predicted mpg"}\NormalTok{, }\AttributeTok{y =} \StringTok{"residuals"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-8.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Europe performance:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Europe performance:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(eu\_res}\SpecialCharTok{$}\NormalTok{perf)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Method Correlation       RMSE        MAE           R2
+## 1  LEAPS  -0.8060228 616.635214 610.771866 -7903.841056
+## 2   LARS   0.9407748   2.442648   1.787548     0.875961
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Europe: leaps terms:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Europe: leaps terms:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(eu\_res}\SpecialCharTok{$}\NormalTok{leaps\_terms)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "(Intercept)"       "displacement"      "horsepower"       
+## [4] "year"              "`I(year^2)`"       "`horsepower:year`"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Europe:lars non{-}zero coefficients:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Europe:lars non-zero coefficients:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(eu\_res}\SpecialCharTok{$}\NormalTok{lars\_nonzero , }\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            displacement              horsepower               I(year^2) 
+##                -0.07298                 2.29105                 0.02097 
+##  cylinders:acceleration displacement:horsepower       horsepower:weight 
+##                 0.04235                 0.00016                -0.00005 
+## horsepower:acceleration         horsepower:year       acceleration:year 
+##                -0.00197                -0.02939                 0.00337
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Japan}
+
+\NormalTok{jp\_prep }\OtherTok{\textless{}{-}} \FunctionTok{prepare\_origin\_df}\NormalTok{(}\DecValTok{3}\NormalTok{)}
+\NormalTok{jp\_res  }\OtherTok{\textless{}{-}} \FunctionTok{fit\_models}\NormalTok{(jp\_prep}\SpecialCharTok{$}\NormalTok{df , jp\_prep}\SpecialCharTok{$}\NormalTok{y , jp\_prep}\SpecialCharTok{$}\NormalTok{xvars)}
+
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Actual =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{y\_test , }\AttributeTok{Predicted =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) ,}\FunctionTok{aes}\NormalTok{(Actual, Predicted)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#1f78b4"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{ , }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Japan: LEAPS predictions (corr ="}\NormalTok{ , }\FunctionTok{round}\NormalTok{(}\FunctionTok{cor}\NormalTok{(jp\_res}\SpecialCharTok{$}\NormalTok{y\_test , jp\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\DecValTok{3}\NormalTok{) , }\StringTok{")"}\NormalTok{) , }\AttributeTok{x =} \StringTok{"actual mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"predicted mpg"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-9.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Actual =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{y\_test , }\AttributeTok{Predicted =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\FunctionTok{aes}\NormalTok{(Actual, Predicted)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#e31a1c"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{ , }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Japan: LARS predictions (corr ="}\NormalTok{ , }\FunctionTok{round}\NormalTok{(}\FunctionTok{cor}\NormalTok{(jp\_res}\SpecialCharTok{$}\NormalTok{y\_test , jp\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\DecValTok{3}\NormalTok{), }\StringTok{")"}\NormalTok{) , }\AttributeTok{x =} \StringTok{"actual mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"predicted mpg"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-10.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Pred =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps , }\AttributeTok{Resid =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{y\_test }\SpecialCharTok{{-}}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{pred\_leaps) , }\FunctionTok{aes}\NormalTok{(Pred , Resid)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#33a02c"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Japan: LEAPS residuals"}\NormalTok{ , }\AttributeTok{x =} \StringTok{"predicted mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"residuals"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-11.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Pred =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{pred\_lars , }\AttributeTok{Resid =}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{y\_test }\SpecialCharTok{{-}}\NormalTok{ jp\_res}\SpecialCharTok{$}\NormalTok{pred\_lars) , }\FunctionTok{aes}\NormalTok{(Pred, Resid)) }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"\#ff7f00"}\NormalTok{ , }\AttributeTok{size =} \DecValTok{3}\NormalTok{ , }\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{ , }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{ , }\AttributeTok{color =} \StringTok{"\#222222"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Japan: LARS residuals"}\NormalTok{ , }\AttributeTok{x =} \StringTok{"predicted mpg"}\NormalTok{ , }\AttributeTok{y =} \StringTok{"residuals"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Assignment4_files/figure-latex/Assingment 4-12.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Japan performance:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Japan performance:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(jp\_res}\SpecialCharTok{$}\NormalTok{perf)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Method Correlation       RMSE        MAE           R2
+## 1  LEAPS  -0.4209844 272.376471 255.298890 -1938.696396
+## 2   LARS   0.5454408   5.473608   4.006533     0.216675
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Japan — leaps terms:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Japan — leaps terms:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(jp\_res}\SpecialCharTok{$}\NormalTok{leaps\_terms)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "(Intercept)"                 "displacement"               
+##  [3] "horsepower"                  "weight"                     
+##  [5] "year"                        "`I(cylinders^2)`"           
+##  [7] "`I(horsepower^2)`"           "`I(acceleration^2)`"        
+##  [9] "`cylinders:horsepower`"      "`cylinders:acceleration`"   
+## [11] "`displacement:horsepower`"   "`displacement:acceleration`"
+## [13] "`horsepower:weight`"         "`horsepower:acceleration`"  
+## [15] "`horsepower:year`"           "`weight:acceleration`"      
+## [17] "`weight:year`"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Japan — lars non{-}zero coefficients:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Japan — lars non-zero coefficients:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(jp\_res}\SpecialCharTok{$}\NormalTok{lars\_nonzero , }\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                 cylinders                horsepower                    weight 
+##                  90.28894                   6.09792                  -0.32539 
+##              acceleration            I(cylinders^2)         I(displacement^2) 
+##                 -13.16116                 -11.83717                  -0.00021 
+##           I(horsepower^2)               I(weight^2)         I(acceleration^2) 
+##                  -0.01488                   0.00000                   0.09692 
+##                 I(year^2)    cylinders:displacement      cylinders:horsepower 
+##                  -0.00702                   0.00131                   0.31540 
+##    cylinders:acceleration            cylinders:year   displacement:horsepower 
+##                   1.96069                  -0.37624                  -0.01792 
+## displacement:acceleration         displacement:year         horsepower:weight 
+##                  -0.05987                   0.02871                   0.00138 
+##   horsepower:acceleration           horsepower:year       weight:acceleration 
+##                  -0.22696                  -0.03277                   0.00911 
+##               weight:year         acceleration:year 
+##                   0.00103                   0.05279
+\end{verbatim}
+
+\paragraph{Overall, LARS was more effective and more consistent than
+LEAPS in predicting mpg for all three regions, and this provides useful
+insight into differences in vehicle design and specification priorities.
+In the U.S., LARS correlated very well with approximately 0.963, had an
+RMSE of 1.77, and an R2-statistic value of 0.925 (or 92.5\%), which
+indicates there are variables like number of cylinders, vehicle weight,
+and acceleration that are closely linked to fuel efficiency. Meanwhile,
+LEAPS did not correlate very well at all - the correlation was near zero
+(or extremely low) and was accompanied by an enormous error value, or
+RMSE, indicating these variables from LEAPS did not generalize to new
+data. This was similarly true in Europe, where LARS again correlated
+approximately correctly at 0.941, RMSE 2.44, R2=0.876, highlighting the
+considerable role that displacement, horsepower, and vehicle year play
+in deciding on mpg. LEAPS had determined, for example, that horsepower
+did not have much value in prediction, but the accuracy of this
+prediction can be called into question given what LARS was able to
+conclude. Again, LEAPS was highly inaccurate (negative correlation, huge
+error) for every inquiry, which suggested an extreme level of
+overfitting}\label{overall-lars-was-more-effective-and-more-consistent-than-leaps-in-predicting-mpg-for-all-three-regions-and-this-provides-useful-insight-into-differences-in-vehicle-design-and-specification-priorities.-in-the-u.s.-lars-correlated-very-well-with-approximately-0.963-had-an-rmse-of-1.77-and-an-r2-statistic-value-of-0.925-or-92.5-which-indicates-there-are-variables-like-number-of-cylinders-vehicle-weight-and-acceleration-that-are-closely-linked-to-fuel-efficiency.-meanwhile-leaps-did-not-correlate-very-well-at-all---the-correlation-was-near-zero-or-extremely-low-and-was-accompanied-by-an-enormous-error-value-or-rmse-indicating-these-variables-from-leaps-did-not-generalize-to-new-data.-this-was-similarly-true-in-europe-where-lars-again-correlated-approximately-correctly-at-0.941-rmse-2.44-r20.876-highlighting-the-considerable-role-that-displacement-horsepower-and-vehicle-year-play-in-deciding-on-mpg.-leaps-had-determined-for-example-that-horsepower-did-not-have-much-value-in-prediction-but-the-accuracy-of-this-prediction-can-be-called-into-question-given-what-lars-was-able-to-conclude.-again-leaps-was-highly-inaccurate-negative-correlation-huge-error-for-every-inquiry-which-suggested-an-extreme-level-of-overfitting}
+
+\paragraph{Japanese vehicles created a more complicated set of
+circumstances. Even though LARS continued to do better than LEAPS the
+predictive accuracy for Japanese vehicles was considerably lower than in
+the other two regions, with a correlation around 0.545, an RMSE of 5.47
+and R\^{}2 of 0.217. This suggests that fuel economy for Japanese
+vehicles is based on a more complicated combination of factors,
+including interactions between engine power, vehicle weight, and design
+characteristics. These results reveal clear regional engineering
+priorities: American manufacturers are focused on maximizing performance
+while improving fuel economy, European designs are not concerned with
+the cost performance and mainly maximize technology and engine
+performance, while Japanese manufacturers blend multiple interacting
+design decisions in order to increase
+efficiency.}\label{japanese-vehicles-created-a-more-complicated-set-of-circumstances.-even-though-lars-continued-to-do-better-than-leaps-the-predictive-accuracy-for-japanese-vehicles-was-considerably-lower-than-in-the-other-two-regions-with-a-correlation-around-0.545-an-rmse-of-5.47-and-r2-of-0.217.-this-suggests-that-fuel-economy-for-japanese-vehicles-is-based-on-a-more-complicated-combination-of-factors-including-interactions-between-engine-power-vehicle-weight-and-design-characteristics.-these-results-reveal-clear-regional-engineering-priorities-american-manufacturers-are-focused-on-maximizing-performance-while-improving-fuel-economy-european-designs-are-not-concerned-with-the-cost-performance-and-mainly-maximize-technology-and-engine-performance-while-japanese-manufacturers-blend-multiple-interacting-design-decisions-in-order-to-increase-efficiency.}
+
+\end{document}

@@ -1,0 +1,66 @@
+---
+title: "<center>Assignment6: Double Bootstrap</center>"
+author: "<center>Dev Amin , Prisha Shah & Manan Patel</center>"
+date: "<center>2025-10-24</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+
+set.seed(123)
+
+#function for bootstrap standard error using resampling
+bootstrap_se <- function(x, stat_fun, nboot_se = 1000){
+  x <- as.numeric(x); n <- length(x); if(n <= 1) return(0)
+  idx <- matrix(sample.int(n, n * nboot_se, replace = TRUE), nrow = n)
+  xb  <- matrix(x[idx], nrow = n)
+  sd(apply(xb, 2, stat_fun))
+}
+
+#function for bootstrap-t confidence interval using nested bootstrap
+bootstrap_t_ci_collect <- function(x, stat_fun, alpha = 0.05, nboot_outer = 2000, nboot_inner = 400){
+  x <- as.numeric(x); n <- length(x); if(n < 2) stop("n<2")
+  th  <- stat_fun(x)
+  se0 <- bootstrap_se(x, stat_fun, nboot_inner)
+  if(!is.finite(se0) || se0 == 0) return(list(ci = c(lower = th, upper = th)))
+  idx <- matrix(sample.int(n, n * nboot_outer, replace = TRUE), nrow = n)
+  xb  <- matrix(x[idx], nrow = n)
+  thetab <- apply(xb, 2, stat_fun)
+  seb <- vapply(seq_len(ncol(xb)), function(i)
+    bootstrap_se(xb[, i], stat_fun, nboot_inner), numeric(1))
+  seb[!is.finite(seb) | seb == 0] <- NA_real_
+  tb <- (thetab - th) / seb
+  tb <- tb[is.finite(tb)]
+  ql <- as.numeric(quantile(tb, alpha/2, na.rm = TRUE, type = 7))
+  qh <- as.numeric(quantile(tb, 1 - alpha/2, na.rm = TRUE, type = 7))
+  ci <- c(lower = th - qh * se0, upper = th - ql * se0)
+  list(ci = ci, tb = tb, thetab = thetab, theta_hat = th, ql = ql, qh = qh)
+}
+
+#function for loading special sample from xy.pck 
+load_special_sample <- function(path = "xy.pck"){
+  if(!file.exists(path)) stop("file not found: ", path)
+  e <- new.env(parent = baseenv())
+  sys.source(path, envir = e)
+  if(!exists("special.sample", envir = e, inherits = FALSE))
+    stop("special.sample not found after sourcing ", path)
+  as.numeric(get("special.sample", envir = e))
+}
+
+x <- load_special_sample("xy.pck")
+alpha <- 0.05; nbo <- 2000; nbi <- 400
+
+res_mean   <- bootstrap_t_ci_collect(x, mean,   alpha = alpha, nboot_outer = nbo, nboot_inner = nbi)
+res_median <- bootstrap_t_ci_collect(x, median, alpha = alpha, nboot_outer = nbo, nboot_inner = nbi)
+
+cat(sprintf("n = %d", length(x)))
+cat(sprintf("95%% CI (Mean)   : [%.6f, %.6f]", res_mean$ci["lower"], res_mean$ci["upper"]))
+cat(sprintf("95%% CI (Median) : [%.6f, %.6f]", res_median$ci["lower"], res_median$ci["upper"]))
+
+
+```

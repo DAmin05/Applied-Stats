@@ -1,0 +1,223 @@
+---
+title: "<center>Assignment5</center>"
+author: "<center>Dev Amin , Manan Patel & Prisha Shah</center>"
+date: "<center>2025-10-17</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+stopifnot(file.exists("smoother.pck"))
+source("smoother.pck") 
+
+# Load NOAA data (use the raw version as in slides)
+stopifnot(file.exists("NOAAnew.csv"))
+NOAA.new <- read.csv("NOAAnew.csv", header = TRUE)
+
+# Slide mapping: x = temperature rise (col 3), y = rate of billion-dollar disasters (col 2)
+x <- as.numeric(NOAA.new[[3]])
+y <- as.numeric(NOAA.new[[2]])
+stopifnot(length(x) == length(y))
+n    <- length(x)
+rngx <- diff(range(x, na.rm = TRUE))
+stopifnot(is.finite(rngx), rngx > 0)
+
+## Shared utilities
+# PRESS for linear smoothers: yhat = S y, w_ii = diag(S)
+press_from_weights <- function(y, yhat, w_diag) {
+  adj <- pmax(1 - w_diag, 1e-12)
+  sum(((y - yhat) / adj)^2)
+}
+
+# Running-bin weights (window length r around ordered x)
+bin_weights <- function(x, r) {
+  n <- length(x); W <- matrix(0, n, n)
+  o <- order(x)
+  h <- max(0L, floor(r/2))
+  for (k in seq_len(n)) {
+    lo <- max(1, k - h); hi <- min(n, k + h)
+    idx <- o[lo:hi]
+    W[k, idx] <- 1 / length(idx)
+  }
+  W
+}
+
+# Gaussian kernel weights; optional k-NN truncation; numerically safe
+gaussian_weights <- function(x, h, k = NULL) {
+  n <- length(x); W <- matrix(0, n, n)
+  for (i in 1:n) {
+    d <- abs(x - x[i])
+    if (!is.null(k)) {
+      k_eff <- max(1L, min(as.integer(round(k)), n))
+      cut <- sort(d, partial = k_eff)[k_eff]
+      d[d > cut] <- Inf
+    }
+    w <- exp(-0.5 * (d / h)^2)
+    w[is.infinite(w)] <- 0
+    sw <- sum(w); if (sw == 0) { w[i] <- 1; sw <- 1 }
+    W[i, ] <- w / sw
+  }
+  W
+}
+
+##2) Smoothers with PRESS inside (as taught: "put it in each smoother")
+# A) Running-bin mean
+bin.mean <- function(x, y, r, press = FALSE) {
+  W    <- bin_weights(x, r)
+  yhat <- as.vector(W %*% y)
+  out  <- list(yhat = yhat, wii = diag(W))
+  if (press) out$press <- press_from_weights(y, yhat, out$wii)
+  out
+}
+
+# B) gaussian mean 
+gauss.mean <- function(x, y, h, k = NULL, press = FALSE) {
+  W    <- gaussian_weights(x, h, k)
+  yhat <- as.vector(W %*% y)
+  out  <- list(yhat = yhat, wii = diag(W))
+  if (press) out$press <- press_from_weights(y, yhat, out$wii)
+  out
+}
+
+# C) Local linear gaussian regression
+#    (for PRESS we do LOOCV by refitting locally with w_i=0 — simple & class-consistent)
+gauss.reg <- function(x, y, h, k = NULL, press = FALSE) {
+  n <- length(y)
+  # fitted values at training x (local linear around each x_i)
+  yhat <- numeric(n)
+  for (i in 1:n) {
+    d <- abs(x - x[i])
+    if (!is.null(k)) {
+      k_eff <- max(2L, min(as.integer(round(k)), n))
+      cut <- sort(d, partial = k_eff)[k_eff]
+      d[d > cut] <- Inf
+    }
+    w <- exp(-0.5 * (d / h)^2)
+    X <- cbind(1, x - x[i])         # centered design; intercept is prediction at x_i
+    fit <- lm(y ~ X - 1, weights = w)
+    yhat[i] <- coef(fit)[1]
+  }
+  out <- list(yhat = yhat)          # no w_ii closed form here
+  
+  if (press) {
+    loo_err2 <- numeric(n)
+    for (i in 1:n) {
+      d <- abs(x - x[i])
+      if (!is.null(k)) {
+        k_eff <- max(2L, min(as.integer(round(k)), n))
+        cut <- sort(d, partial = k_eff)[k_eff]
+        d[d > cut] <- Inf
+      }
+      w <- exp(-0.5 * (d / h)^2)
+      w[i] <- 0
+      keep <- which(is.finite(d) & w > 0)
+      if (length(keep) < 2) {
+        yhat_i <- mean(y[-i])
+      } else {
+        X <- cbind(1, x - x[i])
+        fit <- lm(y ~ X - 1, weights = w)
+        yhat_i <- coef(fit)[1]
+      }
+      loo_err2[i] <- (y[i] - yhat_i)^2
+    }
+    out$press <- sum(loo_err2)
+  }
+  out
+}
+
+## 3) PRESS on slide-17 parameters 
+# Slide values (from class code):
+# bin.mean(..., 6)
+# gauss.mean(..., 0.063)
+# gauss.reg (..., 0.078)
+# gauss.mean(..., 0.063, k=20)
+# gauss.reg (..., 0.080, k=17)
+slide_press <- list(
+  bin_mean_r6           = bin.mean (x, y, r = 6,              press = TRUE)$press,
+  gauss_mean_h0063      = gauss.mean(x, y, h = 0.063 * rngx,  press = TRUE)$press,
+  gauss_reg_h0078       = gauss.reg (x, y, h = 0.078 * rngx,  press = TRUE)$press,
+  gauss_mean_h0063_k20  = gauss.mean(x, y, h = 0.063 * rngx, k = 20, press = TRUE)$press,
+  gauss_reg_h0080_k17   = gauss.reg (x, y, h = 0.080 * rngx, k = 17, press = TRUE)$press
+)
+cat("PRESS at slide parameters:\n"); print(slide_press)
+
+## 4) greedy random search to minimize PRESS 
+greedy_random_search <- function(eval_fun, par_init, par_bounds, iters = 200, step = 0.25) {
+  best_par <- par_init
+  best_val <- do.call(eval_fun, best_par)
+  for (t in 1:iters) {
+    cand <- best_par
+    for (nm in names(par_bounds)) {
+      lo <- par_bounds[[nm]][1]; hi <- par_bounds[[nm]][2]
+      prop <- cand[[nm]]
+      prop <- if (is.numeric(prop) && prop > 0) prop * exp(rnorm(1, 0, step)) else prop + rnorm(1, 0, step)
+      cand[[nm]] <- min(max(prop, lo), hi)
+    }
+    val <- do.call(eval_fun, cand)
+    if (val < best_val) { best_val <- val; best_par <- cand }
+  }
+  list(best_par = best_par, best_press = best_val)
+}
+
+# dataware, safe bounds
+bounds_gauss_h <- c(0.01 * rngx, 0.40 * rngx)
+bounds_bin_r   <- c(3, min(35, n))
+bounds_trunc_k <- c(5, max(10, n - 1))
+
+#objective wrappers (return PRESS only)
+obj_bin  <- function(r)               bin.mean (x, y, r = r,              press = TRUE)$press
+obj_gm   <- function(h)               gauss.mean(x, y, h = h,             press = TRUE)$press
+obj_gr   <- function(h)               gauss.reg (x, y, h = h,             press = TRUE)$press
+obj_gmtr <- function(h, k)            gauss.mean(x, y, h = h, k = k,      press = TRUE)$press
+obj_grtr <- function(h, k)            gauss.reg (x, y, h = h, k = k,      press = TRUE)$press
+
+set.seed(123)
+
+search_bin  <- greedy_random_search(
+  eval_fun   = function(r) obj_bin(r),
+  par_init   = list(r = 6),
+  par_bounds = list(r = bounds_bin_r),
+  iters = 200, step = 0.25
+)
+
+search_gm   <- greedy_random_search(
+  eval_fun   = function(h) obj_gm(h),
+  par_init   = list(h = 0.063 * rngx),
+  par_bounds = list(h = bounds_gauss_h),
+  iters = 200, step = 0.25
+)
+
+search_gr   <- greedy_random_search(
+  eval_fun   = function(h) obj_gr(h),
+  par_init   = list(h = 0.078 * rngx),
+  par_bounds = list(h = bounds_gauss_h),
+  iters = 200, step = 0.25
+)
+
+search_gmtr <- greedy_random_search(
+  eval_fun   = function(h, k) obj_gmtr(h, k),
+  par_init   = list(h = 0.063 * rngx, k = 20),
+  par_bounds = list(h = bounds_gauss_h, k = bounds_trunc_k),
+  iters = 250, step = 0.25
+)
+
+search_grtr <- greedy_random_search(
+  eval_fun   = function(h, k) obj_grtr(h, k),
+  par_init   = list(h = 0.080 * rngx, k = 17),
+  par_bounds = list(h = bounds_gauss_h, k = bounds_trunc_k),
+  iters = 250, step = 0.25
+)
+
+cat("\n--- Greedy random search results (min PRESS) ---\n")
+print(search_bin)
+print(search_gm)
+print(search_gr)
+print(search_gmtr)
+print(search_grtr)
+
+
+
+```
