@@ -1,0 +1,227 @@
+---
+title: "<center>Assignment7<c/enter>"
+author: "<center>Dev Amin, Prisha Shah & Manan Patel</center>"
+date: "<center>2025-10-30</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+
+# loading datasets
+NOAAnew <- read.csv("NOAAnew.csv", check.names = FALSE)
+NOAAnewA <- read.csv("NOAAnewA.csv", check.names = FALSE)
+
+# defining helper functions
+scale_year <- function(y) (y - 1980) / 10
+engineer_features <- function(df_raw) {
+  out <- data.frame(
+    year        = scale_year(as.numeric(df_raw$year)),
+    X.disaster  = as.numeric(df_raw$X.disaster),
+    delta.temp  = as.numeric(df_raw$delta.temp)
+  )
+  out[["NOAA0$year^2"]]                  <- out$year^2
+  out[["NOAA0$delta.temp^2"]]            <- out$delta.temp^2
+  out[["NOAA0$year * NOAA0$delta.temp"]] <- out$year * out$delta.temp
+  out
+}
+
+# fixing blank column names
+namesA <- colnames(NOAAnewA)
+if (any(is.na(namesA) | namesA == "")) {
+  namesA[is.na(namesA) | namesA == ""] <- "Unnamed: 0"
+  colnames(NOAAnewA) <- namesA
+}
+
+# building NOAAnewB with missing years
+last_scaled <- suppressWarnings(max(as.numeric(NOAAnewA$year), na.rm = TRUE))
+approx_last_year <- if (is.finite(last_scaled)) as.integer(round(last_scaled * 10 + 1980)) else 1980
+extra_raw <- NOAAnew %>% filter(year > approx_last_year)
+extra_feat <- if (nrow(extra_raw) > 0) engineer_features(extra_raw) else extra_raw
+
+if (nrow(extra_feat) > 0) {
+  extra_filled <- as.data.frame(matrix(NA, nrow = nrow(extra_feat), ncol = ncol(NOAAnewA)))
+  colnames(extra_filled) <- colnames(NOAAnewA)
+  common <- intersect(colnames(NOAAnewA), colnames(extra_feat))
+  for (nm in common) extra_filled[[nm]] <- extra_feat[[nm]]
+  NOAAnewB <- dplyr::bind_rows(NOAAnewA, extra_filled)
+} else {
+  NOAAnewB <- NOAAnewA
+}
+
+if ("Unnamed: 0" %in% names(NOAAnewB)) {
+  NOAAnewB[["Unnamed: 0"]] <- seq_len(nrow(NOAAnewB))
+}
+NOAAnewB[is.na(NOAAnewB)] <- 0
+write.csv(NOAAnewB, "NOAAnewB.csv", row.names = FALSE)
+cat("saving NOAAnewB.csv with", nrow(NOAAnewB), "rows")
+
+# defining neural net functions
+my.logistic <- function(z) exp(z) / (1 + exp(z))
+
+my.eval1.nnet.ml <- function(Xrow, w0, hidden, output = "linear", num.layers = 2) {
+  p <- length(Xrow)
+  n_w1 <- p * hidden
+  W1   <- matrix(w0[1:n_w1], p, hidden)
+  wrem <- w0[-(1:n_w1)]
+  z <- drop(t(Xrow) %*% W1)
+  z <- my.logistic(z)
+  if (num.layers > 1) {
+    for (i in 2:num.layers) {
+      n_wh <- hidden * hidden
+      Wk   <- matrix(wrem[1:n_wh], hidden, hidden)
+      wrem <- wrem[-(1:n_wh)]
+      z <- my.logistic(drop(z %*% Wk))
+    }
+  }
+  w_out <- wrem
+  out <- sum(w_out * z)
+  if (output == "binary") out <- my.logistic(out)
+  out
+}
+
+my.eval2.nnet.ml <- function(w0, X, Y, hidden, output = "linear", num.layers = 2, lambda = 0.003) {
+  zfun <- function(vrow) my.eval1.nnet.ml(vrow, w0, hidden, output, num.layers)
+  pred <- apply(X, 1, zfun)
+  ss   <- sum((pred - Y)^2) + lambda * sum(w0^2)
+  list(llik = ss, pred = pred, y = Y)
+}
+
+my.neuralnet.multilayer <- function(X1, Y, hidden = 4, output = "linear",
+                                    num.layers = 2, lambda = 0.003) {
+  X <- cbind(1, X1)
+  p <- ncol(X)
+  n_w1    <- p * hidden
+  n_whid  <- (num.layers - 1) * (hidden * hidden)
+  n_wout  <- hidden
+  n_total <- n_w1 + n_whid + n_wout
+  set.seed(123)
+  w0 <- runif(n_total, min = -0.1, max = 0.1)
+  obj <- function(w) {
+    val <- my.eval2.nnet.ml(w, X, Y, hidden, output, num.layers, lambda)$llik
+    if (!is.finite(val)) return(Inf)
+    val
+  }
+  opt <- optim(w0, obj, method = "L-BFGS-B",
+               lower = rep(-2, n_total), upper = rep(2, n_total))
+  ev  <- my.eval2.nnet.ml(opt$par, X, Y, hidden, output, num.layers, lambda)
+  list(ss = opt$value, wfinal = opt$par, eval_result = ev, X = X)
+}
+
+my.greedy.neuralnet <- function(X0, Y, hidden = 4, output = "linear",
+                                num.layers = 2, lambda = 0.003, trials = 15) {
+  best <- my.neuralnet.multilayer(X0, Y, hidden, output, num.layers, lambda)
+  if (trials > 1) {
+    for (i in 2:trials) {
+      cand <- my.neuralnet.multilayer(X0, Y, hidden, output, num.layers, lambda)
+      if (cand$ss < best$ss) best <- cand
+    }
+  }
+  with(best$eval_result, {
+    plot(pred, y,
+         xlab = "Prediction", ylab = "Y")
+    title(main = paste0("llik = ", signif(llik, 12), "\nSS = ", signif(best$ss, 12)))
+    abline(0, 1, lty = 2, col = "gray50")
+  })
+  best
+}
+
+# preparing X and Y
+stopifnot("X.disaster" %in% names(NOAAnewB))
+feature_cols <- setdiff(colnames(NOAAnewB), c("Unnamed: 0", "X.disaster"))
+Xmat <- as.matrix(NOAAnewB[, feature_cols, drop = FALSE])
+yvec <- as.numeric(NOAAnewB$X.disaster)
+
+# running greedy NN
+set.seed(123)
+best_model <- my.greedy.neuralnet(
+  X0         = Xmat,
+  Y          = yvec,
+  hidden     = 4,
+  output     = "linear",
+  num.layers = 2,
+  lambda     = 0.003,
+  trials     = 15
+)
+
+# printing results like PDF
+cat("$ss")
+print(best_model$ss)
+
+cat("$wfinal")
+print(best_model$wfinal)
+
+cat("$eval_result")
+cat("## $eval_result$llik")
+print(best_model$eval_result$llik)
+
+cat("$eval_result$pred")
+print(best_model$eval_result$pred)
+
+cat("$eval_result$y")
+print(best_model$eval_result$y)
+
+# computing predictions and residuals
+pred <- as.numeric(best_model$eval_result$pred)
+res  <- yvec - pred
+
+# plotting observed vs fitted
+if ("year" %in% names(NOAAnewB)) {
+  df_time <- data.frame(year = NOAAnewB$year, y = yvec, yhat = pred) %>% arrange(year)
+  ggplot(df_time, aes(x = year, y = y)) +
+    geom_point() +
+    geom_line(aes(y = yhat)) +
+    labs(title = "Observed vs Fitted over (Scaled) Year",
+         x = "Scaled Year ((year - 1980)/10)", y = "Disaster") +
+    theme_minimal()
+}
+
+# plotting parity plot
+df_parity <- data.frame(obs = yvec, pred = pred)
+ggplot(df_parity, aes(x = obs, y = pred)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = 2, color = "gray40") +
+  labs(title = "Parity Plot (Pred vs Obs)", x = "Observed", y = "Predicted") +
+  theme_minimal()
+
+# plotting residuals vs fitted
+df_res <- data.frame(fitted = pred, resid = res)
+ggplot(df_res, aes(x = fitted, y = resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2, color = "gray40") +
+  labs(title = "Residuals vs Fitted", x = "Fitted", y = "Residuals") +
+  theme_minimal()
+
+# plotting residuals over time
+if ("year" %in% names(NOAAnewB)) {
+  df_res_time <- data.frame(year = NOAAnewB$year, resid = res)
+  ggplot(df_res_time, aes(x = year, y = resid)) +
+    geom_point() + geom_line() +
+    geom_hline(yintercept = 0, linetype = 2, color = "gray40") +
+    labs(title = "Residuals over (Scaled) Year",
+         x = "Scaled Year ((year - 1980)/10)", y = "Residuals") +
+    theme_minimal()
+}
+
+
+
+```
+
+
+
+
+### Class 15 slide 3 comment : Single Hidden Layer
+
+##### The code is creating and training a simple neural network with one hidden layer. The main function, my.neuralnet, starts by preparing the data, setting up random starting weights, and then using an optimization method to find the best weights that minimize the model’s error. The helper functions handle how the network makes predictions: my.eval1.nnet calculates the output for a single input by passing it through the hidden layer, and my.eval2.nnet applies this process to the entire dataset and measures how far the predictions are from the actual values. The my.logistic function adds the “activation” step that helps the network learn non-linear patterns. Overall, the code walks through the full process of building, training, and testing a small neural network from scratch
+
+
+###  Class 15 Slide 4 commnet: Multilayer with Regularization
+
+##### The code builds a more advanced version of the neural network by adding multiple hidden layers and a regularization term to prevent overfitting. The main function, my.neuralnet.multilayer, prepares the data, initializes the weights for each layer, and uses optimization methods like BFGS or CG to minimize the total error. The helper functions handle how the data flows through the network: my.eval1.nnet.ml runs the forward pass through all hidden layers using the logistic activation function, and my.eval2.nnet.ml computes the overall error (loss) while also adding a penalty term (lambda * sum(w^2)) that discourages excessively large weights. The code ends by plotting predicted versus actual values to visualize model performance. In short, this version generalizes the single-hidden-layer network from the previous slide, allowing for deeper architectures and more stable learning through regularization
