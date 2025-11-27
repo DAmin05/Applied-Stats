@@ -1,0 +1,97 @@
+---
+title: "<center>Assignment10</center>"
+author: "<center>Dev Amin, Manan Patel & Prisha Shah</center>"
+date: "<center>2025-11-21</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+source('exploremv.pck')
+
+exploremv.pck
+```
+
+### Checking gui.mvntest, gui.orth, gui.explore and gui.asym functions
+```{r}
+#gui.mvntest
+#gui.orth
+#gui.explore
+#gui.asym
+```
+
+
+### Commenting movie.peru
+```{r}
+movie.peru
+```
+
+##### In the movie.peru function, the “movie” slows down because the timing of each frame is tied directly to the real time intervals in the Peru dataset. The key step is where the code calculates a timing factor using time.count <- floor(1000 * (ztime[i + nlag] - ztime[i + (nlag - 1)])). This line measures how much actual time has passed between two observations and scales it up, so larger natural gaps create a longer pause in the animation. To physically slow the movie down, the function uses a nested loop —
+for (j in 1:(2 * time.count)) — that repeatedly performs useless computation (v1 <- rnorm(100) followed by a loop of v2 <- sample(v1, replace = T) and mean(v2)). These calculations don’t affect the plot at all; they simply burn CPU time. Because the number of iterations depends on time.count, the animation pauses longer when the underlying time steps are bigger. Then, after each delay, the function redraws the next frame using: sctstr$points3d(Peru[v9, c(2, 3, 4)], col = icolvec, type = "h", lwd = (exp(Peru[v9, 5] - 4))).
+This combination of using real-time differences (ztime) and intentional “busy loops” makes the animation play at a speed that mirrors the actual timing of the Peru data, creating a slowed, time-accurate movie effect.
+
+
+
+### Mystery2
+```{r}
+data <- gui.mvntest()
+```
+
+
+```{r}
+attributes(data)
+
+data$Interesting.directions
+
+matrix <- gui.orth()
+
+
+matrix
+
+gui.explore()
+
+```
+
+
+
+##### gui.asym(as.matrix(mystery2)) graph before cleaning
+
+![Before Cleaning](/Users/devamin/Desktop/Before.png)
+
+##### cleaning code using
+```{r}
+# > gui.asym()
+# [1] "as.matrix(mystery2)" "0"                   ".3"                  ".8"                  ".95"                 "T"                   "F"                   "F"                  
+# [1] "Would you like to identify the points to remove, then reanalyze? (Y/N)"
+# 1: Y
+# 2: 
+# Read 1 item
+# [1] "How many points?"
+# 1: 1
+# 2: 
+# Read 1 item
+# [1] 30
+# [1] 0.01425093
+# [1] "Would you like to identify the points to remove, then reanalyze? (Y/N)"
+# 1: Y
+# 2: 
+# Read 1 item
+# [1] "How many points?"
+# 1: 3
+# 2: 
+# Read 1 item
+# # [1] 30 31 32
+# [1] 0.002980394 0.009451898 0.002304099
+# [1] "Would you like to identify the points to remove, then reanalyze? (Y/N)"
+# 1: 
+
+```
+
+![After Cleaning](/Users/devamin/Desktop/After.png)
+
+## Based on the image, we can conclude that the mammal is Mammoth and the insect is Dragonfly
+

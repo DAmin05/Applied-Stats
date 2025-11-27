@@ -1,0 +1,118 @@
+---
+title: "<center>Assignment8: FDR</center>"
+author: "<center>Dev Amin , Manan Shah & Prisha Shah</center>"
+date: "<center>2025-11-07</center>"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+# FDR Program - Benjamini-Hochberg Procedure
+fdr_program <- function(p_values, q_value, independent = TRUE) {
+  
+  #storing original indices
+  original_order <- seq_along(p_values)
+  
+  #creating data frame with p-values and original positions
+  p_data <- data.frame(original_index = original_order , p_value = p_values)
+  
+  #sorting p-values in ascending order
+  p_sorted <- p_data[order(p_data$p_value), ]
+  
+  #getting number of tests
+  m <- length(p_values)
+  
+  #calculating ordering (rank) for each p-value
+  ordering <- 1:m
+  
+  #calculating critical value line
+  if (independent) 
+  {
+    critical_line <- (ordering / m) * q_value
+    assumption <- "Independent"
+  } 
+  else 
+  {
+    #calculating harmonic sum for dependent tests
+    c_m <- sum(1 / (1:m))
+    critical_line <- (ordering / m) * (q_value / c_m)
+    assumption <- "Dependent, or unknown dependence"
+  }
+  
+  #finding discoveries: p(i) <= critical_line(i)
+  discoveries_indicator <- p_sorted$p_value <= critical_line
+  
+  #finding the largest index where p-value is below the line
+  if (any(discoveries_indicator))
+  {
+    max_discovery_index <- max(which(discoveries_indicator))
+    discovery_indices <- p_sorted$original_index[1:max_discovery_index]
+  }
+  else
+  {
+    discovery_indices <- integer(0)
+    max_discovery_index <- 0
+  }
+  
+  # creating the plot
+  plot(ordering, p_sorted$p_value , type = "l" , lwd = 2 , xlab = "ordering" , ylab = "pvalue" , main = "FDR program" , ylim = c(0 , max(c(p_sorted$p_value , critical_line))))
+  
+  # adding the critical value line
+  lines(ordering, critical_line, col = "red", lwd = 1)
+  
+  # outputting results
+  cat("FDR PROGRAM RESULTS")
+  cat("Assumption:" , assumption)
+  cat("Number of tests:" , m)
+  cat("Desired FDR, q-value:" , q_value)
+  
+  if (length(discovery_indices) > 0)
+  {
+    cat("Number of discoveries:" , length(discovery_indices))
+    cat("Tests considered 'interesting' (discoveries):")
+    cat("Original indices:" , discovery_indices)
+    cat("Corresponding p-values:")
+    print(p_values[discovery_indices])
+  } 
+  else
+  {
+    cat("No discoveries found at FDR level" , q_value)
+  }
+  
+  # returning results
+  invisible(list(
+    discoveries = discovery_indices,
+    assumption = assumption,
+    n_discoveries = length(discovery_indices),
+    sorted_pvalues = p_sorted,
+    critical_line = critical_line
+  ))
+}
+
+#function testing
+set.seed(123)
+psmall.renal <- c(runif(20, 0, 0.01) , runif(80, 0.1, 1))
+plarge.renal <- c(runif(50, 0, 0.05) , runif(1950, 0.1, 1))
+
+#test 1: psmall.renal with independence
+cat("TEST 1: psmall.renal (Independent)")
+result1 <- fdr_program(psmall.renal, q_value = 0.1, independent = TRUE)
+
+# test 2: plarge.renal with independence
+cat("TEST 2: plarge.renal (Independent)")
+result2 <- fdr_program(plarge.renal, q_value = 0.1, independent = TRUE)
+
+# test 3: psmall.renal without independence
+cat("TEST 3: psmall.renal (Dependent)")
+result3 <- fdr_program(psmall.renal, q_value = 0.1, independent = FALSE)
+
+# test 4: plarge.renal without independence
+cat("TEST 4: plarge.renal (Dependent)")
+result4 <- fdr_program(plarge.renal, q_value = 0.1, independent = FALSE)
+
+
+```
